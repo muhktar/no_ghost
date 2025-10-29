@@ -185,15 +185,19 @@ class MainNavigationShell extends StatelessWidget {
             Icon(
               icon,
               color: isSelected ? Colors.white : Colors.white.withOpacity(0.6),
-              size: 24,
+              size: 22,
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white.withOpacity(0.6),
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            const SizedBox(height: 2),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.white.withOpacity(0.6),
+                  fontSize: 9,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ],
