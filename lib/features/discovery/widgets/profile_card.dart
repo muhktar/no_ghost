@@ -79,7 +79,24 @@ class ProfileCard extends HookConsumerWidget {
                           return Transform.rotate(
                             angle: value,
                             child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 0), // Increased spacing so cards don't touch
+                              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                    spreadRadius: 2,
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
                                 child: Stack(
