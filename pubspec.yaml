@@ -79,7 +79,7 @@ dependencies:
   # Video & Voice
   video_player: ^2.9.2
   just_audio: ^0.9.42
-  record: ^5.1.4
+  record: ^5.2.1
   
   # Payment
   in_app_purchase: ^3.2.1
@@ -88,6 +88,7 @@ dependencies:
   flutter_svg: ^2.0.15
   shimmer: ^3.0.0
   pull_to_refresh: ^2.0.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
