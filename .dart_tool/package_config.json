@@ -386,6 +386,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "google_fonts",
+      "rootUri": "file:///Users/muhktarabare/.pub-cache/hosted/pub.dev/google_fonts-6.3.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
       "name": "google_identity_services_web",
       "rootUri": "file:///Users/muhktarabare/.pub-cache/hosted/pub.dev/google_identity_services_web-0.3.3+1",
       "packageUri": "lib/",
@@ -1034,7 +1040,7 @@
       "languageVersion": "3.7"
     }
   ],
-  "generated": "2025-08-29T00:11:53.439797Z",
+  "generated": "2025-10-29T02:05:45.197901Z",
   "generator": "pub",
   "generatorVersion": "3.7.0",
   "flutterRoot": "file:///Users/muhktarabare/development/flutter",
