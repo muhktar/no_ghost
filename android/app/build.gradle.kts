@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.noghost.dating.no_ghost"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
