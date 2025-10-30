@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -161,11 +160,11 @@ class SuggestionsScreen extends HookConsumerWidget {
                                 width: 60,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.15),
+                                      color: Colors.black.withValues(alpha: 0.15),
                                       blurRadius: 8,
                                       offset: const Offset(0, 3),
                                     ),
@@ -200,7 +199,7 @@ class SuggestionsScreen extends HookConsumerWidget {
                                     borderRadius: BorderRadius.circular(12),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
+                                        color: Colors.black.withValues(alpha: 0.2),
                                         blurRadius: 12,
                                         offset: const Offset(0, 4),
                                       ),

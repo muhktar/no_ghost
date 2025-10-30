@@ -4,7 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../shared/models/user_profile.dart';
 import '../providers/user_profile_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -13,7 +12,6 @@ class BasicInfoScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final nameController = useTextEditingController();
     final ageController = useTextEditingController();
     final bioController = useTextEditingController();

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -103,7 +102,7 @@ class LikesScreen extends HookConsumerWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -139,7 +138,7 @@ class LikesScreen extends HookConsumerWidget {
                                   end: Alignment.bottomCenter,
                                   colors: [
                                     Colors.transparent,
-                                    Colors.black.withOpacity(0.7),
+                                    Colors.black.withValues(alpha: 0.7),
                                   ],
                                   stops: const [0.6, 1.0],
                                 ),
@@ -186,7 +185,7 @@ class LikesScreen extends HookConsumerWidget {
                                     '${profile.distance} km away',
                                     style: GoogleFonts.lobster(
                                       fontSize: 12,
-                                      color: Colors.white.withOpacity(0.8),
+                                      color: Colors.white.withValues(alpha: 0.8),
                                     ),
                                   ),
                                 const SizedBox(height: 8),

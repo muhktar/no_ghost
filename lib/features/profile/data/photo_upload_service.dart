@@ -13,21 +13,16 @@ class PhotoUploadService {
     try {
       final user = _auth.currentUser;
       if (user == null) {
-        print('❌ No authenticated user for storage test');
         return false;
       }
 
-      print('🔍 Testing Firebase Storage connection...');
-      print('🗂️ Storage bucket: ${_storage.bucket}');
       
       // Try to list files in the user's directory (this will work even if empty)
       final ref = _storage.ref().child('users/${user.uid}/');
-      final result = await ref.listAll();
+      await ref.listAll();
       
-      print('✅ Storage connection successful! Found ${result.items.length} files');
       return true;
     } catch (e) {
-      print('❌ Storage connection failed: $e');
       return false;
     }
   }
@@ -37,19 +32,15 @@ class PhotoUploadService {
     try {
       final user = _auth.currentUser;
       if (user == null) {
-        print('❌ No authenticated user for photo upload');
         return null;
       }
 
-      print('📤 Starting photo upload for user: ${user.uid}');
-      print('📷 Photo path: ${photo.path}');
 
       // Create a unique filename
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final fileName = customFileName ?? 'profile_photo_$timestamp.jpg';
       final filePath = 'users/${user.uid}/photos/$fileName';
 
-      print('🗂️ Storage path: $filePath');
 
       // Create reference to Firebase Storage
       final ref = _storage.ref().child(filePath);
@@ -59,21 +50,17 @@ class PhotoUploadService {
       
       // Check if file exists
       if (!await file.exists()) {
-        print('❌ File does not exist at path: ${photo.path}');
         return null;
       }
 
-      print('📤 Uploading file...');
       final uploadTask = ref.putFile(file);
 
       // Wait for upload to complete and get download URL
       final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      print('✅ Photo uploaded successfully: $downloadUrl');
       return downloadUrl;
     } catch (e) {
-      print('❌ Error uploading photo: $e');
       return null;
     }
   }
@@ -100,10 +87,8 @@ class PhotoUploadService {
     try {
       final ref = _storage.refFromURL(photoUrl);
       await ref.delete();
-      print('Photo deleted successfully: $photoUrl');
       return true;
     } catch (e) {
-      print('Error deleting photo: $e');
       return false;
     }
   }

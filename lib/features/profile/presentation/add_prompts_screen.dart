@@ -97,7 +97,7 @@ class AddPromptsScreen extends HookConsumerWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Prompts saved! (${answeredCount}/6)',
+                        'Prompts saved! ($answeredCount/6)',
                         style: GoogleFonts.lobster(fontSize: 12),
                       ),
                       backgroundColor: Colors.green,
@@ -137,7 +137,7 @@ class AddPromptsScreen extends HookConsumerWidget {
                 style: GoogleFonts.lobster(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onBackground,
+                  color: theme.colorScheme.onSurface,
                 ),
               ).animate()
                 .fadeIn(duration: 600.ms)
@@ -150,7 +150,7 @@ class AddPromptsScreen extends HookConsumerWidget {
                 style: GoogleFonts.lobster(
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
-                  color: theme.colorScheme.onBackground.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ).animate()
                 .fadeIn(delay: 200.ms, duration: 600.ms)
@@ -162,7 +162,7 @@ class AddPromptsScreen extends HookConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: canContinue ? Colors.green.withOpacity(0.1) : theme.colorScheme.primary.withOpacity(0.1),
+                  color: canContinue ? Colors.green.withValues(alpha: 0.1) : theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: canContinue ? Colors.green : theme.colorScheme.primary,
@@ -200,7 +200,7 @@ class AddPromptsScreen extends HookConsumerWidget {
                   style: GoogleFonts.lobster(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onBackground,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -216,7 +216,7 @@ class AddPromptsScreen extends HookConsumerWidget {
                       color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: theme.colorScheme.outline.withOpacity(0.5),
+                        color: theme.colorScheme.outline.withValues(alpha: 0.5),
                       ),
                     ),
                     child: Column(
@@ -267,7 +267,7 @@ class AddPromptsScreen extends HookConsumerWidget {
                           style: GoogleFonts.lobster(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            color: theme.colorScheme.onBackground,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -362,7 +362,7 @@ class AddPromptsScreen extends HookConsumerWidget {
                     style: GoogleFonts.lobster(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: canContinue ? Colors.white : theme.colorScheme.onSurface.withOpacity(0.5),
+                      color: canContinue ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                 ),

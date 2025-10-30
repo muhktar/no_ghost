@@ -31,7 +31,7 @@ class ProfileCard extends HookConsumerWidget {
     final photoContent = _buildPhotoContent(profile);
 
     // Calculate text height for current photo to prevent overlap
-    double _calculateTextHeight(Map<String, dynamic> content) {
+    double calculateTextHeight(Map<String, dynamic> content) {
       if (content.isEmpty) return 0;
 
       final textStyle = TextStyle(
@@ -59,10 +59,10 @@ class ProfileCard extends HookConsumerWidget {
     final currentContent = photoContent.isNotEmpty && currentPhotoIndex.value < photoContent.length
         ? photoContent[currentPhotoIndex.value]
         : <String, dynamic>{};
-    final estimatedTextHeight = _calculateTextHeight(currentContent);
+    final estimatedTextHeight = calculateTextHeight(currentContent);
     final pillBottomPosition = estimatedTextHeight > 80 ? (280.0 + estimatedTextHeight - 85) : 280.0;
 
-    return Container(
+    return SizedBox(
       height: double.infinity,
       width: double.infinity,
       child: Stack(

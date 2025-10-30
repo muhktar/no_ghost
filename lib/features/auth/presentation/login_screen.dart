@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -71,7 +70,7 @@ class LoginScreen extends HookConsumerWidget {
                 style: GoogleFonts.lobster(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onBackground,
+                  color: theme.colorScheme.onSurface,
                 ),
               ).animate()
                 .fadeIn(duration: 600.ms)
@@ -84,7 +83,7 @@ class LoginScreen extends HookConsumerWidget {
                 style: GoogleFonts.lobster(
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
-                  color: theme.colorScheme.onBackground.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ).animate()
                 .fadeIn(delay: 200.ms, duration: 600.ms)
@@ -174,10 +173,10 @@ class LoginScreen extends HookConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: theme.colorScheme.primary.withOpacity(0.2),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Row(
@@ -241,7 +240,7 @@ class LoginScreen extends HookConsumerWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: theme.colorScheme.outline.withOpacity(0.5),
+            color: theme.colorScheme.outline.withValues(alpha: 0.5),
           ),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -251,7 +250,7 @@ class LoginScreen extends HookConsumerWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -270,7 +269,7 @@ class LoginScreen extends HookConsumerWidget {
                     style: GoogleFonts.lobster(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onBackground,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -279,7 +278,7 @@ class LoginScreen extends HookConsumerWidget {
                     style: GoogleFonts.lobster(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
-                      color: theme.colorScheme.onBackground.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -292,13 +291,13 @@ class LoginScreen extends HookConsumerWidget {
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        theme.colorScheme.onBackground.withOpacity(0.5),
+                        theme.colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
                   )
                 : Icon(
                     Icons.arrow_forward_ios,
-                    color: theme.colorScheme.onBackground.withOpacity(0.5),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     size: 16,
                   ),
           ],
@@ -381,7 +380,9 @@ class LoginScreen extends HookConsumerWidget {
                   emailController.text,
                   passwordController.text,
                 );
-                Navigator.of(context).pop();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
               } catch (e) {
                 // Error handling is done in the provider listener
               }
@@ -439,8 +440,10 @@ class LoginScreen extends HookConsumerWidget {
 
               try {
                 await authNotifier.verifyPhoneNumber(phoneController.text);
-                Navigator.of(context).pop();
-                _showVerificationCodeDialog(context, ref);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  _showVerificationCodeDialog(context, ref);
+                }
               } catch (e) {
                 // Error handling is done in the provider listener
               }
@@ -499,7 +502,9 @@ class LoginScreen extends HookConsumerWidget {
 
               try {
                 await authNotifier.verifyPhoneCode(codeController.text);
-                Navigator.of(context).pop();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
               } catch (e) {
                 // Error handling is done in the provider listener
               }
@@ -557,16 +562,18 @@ class LoginScreen extends HookConsumerWidget {
 
               try {
                 await authNotifier.resetPassword(emailController.text);
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Password reset email sent! Check your inbox.',
-                      style: GoogleFonts.lobster(fontSize: 12),
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Password reset email sent! Check your inbox.',
+                        style: GoogleFonts.lobster(fontSize: 12),
+                      ),
+                      backgroundColor: Colors.green,
                     ),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                  );
+                }
               } catch (e) {
                 // Error handling is done in the provider listener
               }

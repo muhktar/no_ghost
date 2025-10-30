@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/constants/app_constants.dart';
 import '../providers/auth_provider.dart';
 
 class SignUpScreen extends HookConsumerWidget {
@@ -15,7 +13,6 @@ class SignUpScreen extends HookConsumerWidget {
     final theme = Theme.of(context);
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final isLoading = ref.watch(authLoadingProvider);
-    final authError = ref.watch(authErrorProvider);
 
     // Show error snackbar when there's an auth error
     ref.listen(authErrorProvider, (previous, next) {
@@ -37,7 +34,6 @@ class SignUpScreen extends HookConsumerWidget {
     ref.listen(authStateProvider, (previous, next) {
       next.whenData((user) async {
         if (user != null) {
-          print('🔥 SignUpScreen: User authenticated: ${user.email}');
           try {
             // Add small delay to prevent Navigator concurrent access
             await Future.delayed(const Duration(milliseconds: 100));
@@ -45,21 +41,17 @@ class SignUpScreen extends HookConsumerWidget {
             // Use the smart routing logic from AuthService
             final authService = ref.read(authServiceProvider);
             final route = await authService.getPostLoginRoute();
-            print('🔥 SignUpScreen: Got route: $route');
 
             // Use WidgetsBinding to ensure navigation happens on next frame
             if (context.mounted) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (context.mounted) {
-                  print('🔥 SignUpScreen: Navigating to $route');
                   context.go(route);
                 }
               });
             } else {
-              print('❌ SignUpScreen: Context not mounted, skipping navigation');
             }
           } catch (e) {
-            print('❌ SignUpScreen: Error during post-login routing: $e');
             if (context.mounted) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (context.mounted) {
@@ -97,7 +89,7 @@ class SignUpScreen extends HookConsumerWidget {
                 style: GoogleFonts.lobster(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onBackground,
+                  color: theme.colorScheme.onSurface,
                 ),
               ).animate()
                 .fadeIn(duration: 600.ms)
@@ -110,7 +102,7 @@ class SignUpScreen extends HookConsumerWidget {
                 style: GoogleFonts.lobster(
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
-                  color: theme.colorScheme.onBackground.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ).animate()
                 .fadeIn(delay: 200.ms, duration: 600.ms)
@@ -201,10 +193,10 @@ class SignUpScreen extends HookConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: theme.colorScheme.primary.withOpacity(0.2),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Row(
@@ -257,7 +249,7 @@ class SignUpScreen extends HookConsumerWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: theme.colorScheme.outline.withOpacity(0.5),
+            color: theme.colorScheme.outline.withValues(alpha: 0.5),
           ),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -267,7 +259,7 @@ class SignUpScreen extends HookConsumerWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -286,7 +278,7 @@ class SignUpScreen extends HookConsumerWidget {
                     style: GoogleFonts.lobster(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onBackground,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -295,7 +287,7 @@ class SignUpScreen extends HookConsumerWidget {
                     style: GoogleFonts.lobster(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
-                      color: theme.colorScheme.onBackground.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -308,13 +300,13 @@ class SignUpScreen extends HookConsumerWidget {
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        theme.colorScheme.onBackground.withOpacity(0.5),
+                        theme.colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
                   )
                 : Icon(
                     Icons.arrow_forward_ios,
-                    color: theme.colorScheme.onBackground.withOpacity(0.5),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     size: 16,
                   ),
           ],
@@ -400,7 +392,9 @@ class SignUpScreen extends HookConsumerWidget {
                   emailController.text,
                   passwordController.text,
                 );
-                Navigator.of(context).pop();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
               } catch (e) {
                 // Error handling is done in the provider listener
               }
@@ -458,8 +452,10 @@ class SignUpScreen extends HookConsumerWidget {
 
               try {
                 await authNotifier.verifyPhoneNumber(phoneController.text);
-                Navigator.of(context).pop();
-                _showVerificationCodeDialog(context, ref);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  _showVerificationCodeDialog(context, ref);
+                }
               } catch (e) {
                 // Error handling is done in the provider listener
               }
@@ -519,7 +515,9 @@ class SignUpScreen extends HookConsumerWidget {
 
               try {
                 await authNotifier.verifyPhoneCode(codeController.text);
-                Navigator.of(context).pop();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
               } catch (e) {
                 // Error handling is done in the provider listener
               }

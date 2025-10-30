@@ -15,16 +15,18 @@ class SplashScreen extends HookConsumerWidget {
     useEffect(() {
       // Check authentication status and navigate accordingly
       Future.delayed(const Duration(milliseconds: 3000), () async {
-        if (context.mounted) {
-          final authService = ref.read(authServiceProvider);
-          final user = authService.currentUser;
-          
-          if (user != null) {
-            // User is already logged in, determine where to route them
-            final route = await authService.getPostLoginRoute();
+        final authService = ref.read(authServiceProvider);
+        final user = authService.currentUser;
+
+        if (user != null) {
+          // User is already logged in, determine where to route them
+          final route = await authService.getPostLoginRoute();
+          if (context.mounted) {
             context.go(route);
-          } else {
-            // No user logged in, go to welcome
+          }
+        } else {
+          // No user logged in, go to welcome
+          if (context.mounted) {
             context.go('/welcome');
           }
         }
@@ -48,7 +50,7 @@ class SplashScreen extends HookConsumerWidget {
                   borderRadius: BorderRadius.circular(80), // Circular (half of 160)
                   // boxShadow: [
                   //   BoxShadow(
-                  //     color: Colors.black.withOpacity(0.2),
+                  //     color: Colors.black.withValues(alpha: 0.2),
                   //     blurRadius: 15,
                   //     offset: const Offset(0, 5),
                   //   ),
@@ -124,7 +126,7 @@ class SplashScreen extends HookConsumerWidget {
                 AppConstants.appSlogan,
                 style: GoogleFonts.lobster(
                   fontSize: 16,
-                  color: Colors.black.withOpacity(0.7),
+                  color: Colors.black.withValues(alpha: 0.7),
                   fontWeight: FontWeight.w400,
                 ),
                 textAlign: TextAlign.center,
@@ -144,7 +146,7 @@ class SplashScreen extends HookConsumerWidget {
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.black.withOpacity(0.7),
+                    Colors.black.withValues(alpha: 0.7),
                   ),
                 ),
               ),

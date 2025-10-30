@@ -162,7 +162,7 @@ class _DiscoveryProfilePreview extends HookWidget {
       child: Column(
         children: [
           // Photo carousel section
-          Container(
+          SizedBox(
             height: 500,
             child: hasPhotos
                 ? Stack(
@@ -474,7 +474,7 @@ class _DiscoveryProfilePreview extends HookWidget {
                     ).animate()
                       .fadeIn(delay: (800 + index * 100).ms, duration: 600.ms)
                       .slideY(begin: 0.3, end: 0);
-                  }).toList(),
+                  }),
                 ] else
                   Container(
                     width: double.infinity,

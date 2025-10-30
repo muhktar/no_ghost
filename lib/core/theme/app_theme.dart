@@ -27,19 +27,17 @@ class AppTheme {
         primary: primaryBlack,
         secondary: accentColor,
         surface: cardColor,
-        background: primaryWhite,
         error: errorColor,
         onPrimary: primaryWhite,
         onSecondary: primaryWhite,
         onSurface: textPrimary,
-        onBackground: textPrimary,
         onError: primaryWhite,
       ),
 
       cardTheme: CardTheme(
         color: cardColor,
         elevation: 4,
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: Colors.black.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -234,12 +232,10 @@ class AppTheme {
         primary: primaryWhite,
         secondary: accentColor,
         surface: Color(0xFF1F1F1F),
-        background: primaryBlack,
         error: errorColor,
         onPrimary: primaryBlack,
         onSecondary: primaryBlack,
         onSurface: primaryWhite,
-        onBackground: primaryWhite,
         onError: primaryBlack,
       ),
     );

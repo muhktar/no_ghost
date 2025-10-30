@@ -54,7 +54,6 @@ class UserProfileNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
       }
       return success;
     } catch (e) {
-      print('Error creating profile: $e');
       return false;
     }
   }
@@ -71,7 +70,6 @@ class UserProfileNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
       }
       return success;
     } catch (e) {
-      print('Error updating photos: $e');
       return false;
     }
   }
@@ -80,52 +78,39 @@ class UserProfileNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
   Future<bool> updatePhotosWithUpload(List<dynamic> photos) async {
     final currentProfile = state.value;
     if (currentProfile == null) {
-      print('❌ No current profile found for photo upload');
       return false;
     }
 
     try {
-      print('🚀 Starting photo upload process...');
-      print('📷 Photos to process: ${photos.length}');
       for (int i = 0; i < photos.length; i++) {
         final photo = photos[i];
         if (photo is String) {
-          print('  Photo ${i + 1}: Existing URL - ${photo}');
         } else if (photo != null) {
-          print('  Photo ${i + 1}: New photo to upload - ${photo.runtimeType}');
         } else {
-          print('  Photo ${i + 1}: Null/empty slot');
         }
       }
       
       final photoUploadService = PhotoUploadService();
       
       // Test storage connection first
-      print('🔍 Testing Firebase Storage connection...');
       final storageConnected = await photoUploadService.testStorageConnection();
       if (!storageConnected) {
-        print('❌ Firebase Storage connection failed - aborting upload');
         return false;
       }
       
       // Get existing photo URLs for comparison
       final existingUrls = currentProfile.photoUrls;
-      print('🗂️ Existing URLs in profile: ${existingUrls.length}');
       
       // Use the PhotoUploadService to handle uploads and deletions
-      print('📤 Calling PhotoUploadService.updateProfilePhotos...');
       final finalUrls = await photoUploadService.updateProfilePhotos(
         currentPhotos: photos,
         existingUrls: existingUrls,
       );
 
-      print('✅ Upload service returned ${finalUrls.length} URLs');
 
       // Update profile with final URLs
-      print('💾 Updating profile in Firestore...');
       final success = await _service.updateUserPhotos(currentProfile.userId, finalUrls);
       if (success) {
-        print('🔄 Reloading profile data...');
         await _loadCurrentProfile();
         
         // Force refresh all providers that depend on profile data
@@ -134,11 +119,9 @@ class UserProfileNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
         _ref.invalidate(userPromptsProvider);
         _ref.invalidate(profileCompletionStatusProvider);
         
-        print('✅ Profile providers refreshed');
       }
       return success;
     } catch (e) {
-      print('❌ Error updating photos with upload: $e');
       return false;
     }
   }
@@ -155,7 +138,6 @@ class UserProfileNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
       }
       return success;
     } catch (e) {
-      print('Error updating prompts: $e');
       return false;
     }
   }
@@ -185,7 +167,6 @@ class UserProfileNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
       }
       return success;
     } catch (e) {
-      print('Error updating basic info: $e');
       return false;
     }
   }
@@ -202,7 +183,6 @@ class UserProfileNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
       }
       return success;
     } catch (e) {
-      print('Error updating preferences: $e');
       return false;
     }
   }

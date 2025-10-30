@@ -151,7 +151,7 @@ class MainNavigationShell extends StatelessWidget {
           color: Colors.black,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -184,7 +184,7 @@ class MainNavigationShell extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.white : Colors.white.withOpacity(0.6),
+              color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.6),
               size: 22,
             ),
             const SizedBox(height: 2),
@@ -192,7 +192,7 @@ class MainNavigationShell extends StatelessWidget {
               child: Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white.withOpacity(0.6),
+                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.6),
                   fontSize: 9,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),

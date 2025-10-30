@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_constants.dart';
-import '../providers/auth_provider.dart';
 import '../../profile/providers/user_profile_provider.dart';
 
 class ProfileSetupScreen extends HookConsumerWidget {
@@ -57,7 +55,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
               style: GoogleFonts.lobster(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onBackground,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             
@@ -68,7 +66,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
               style: GoogleFonts.lobster(
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
-                color: theme.colorScheme.onBackground.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
             
@@ -81,7 +79,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.5),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.5),
                 ),
               ),
               child: Column(
@@ -99,7 +97,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                         style: GoogleFonts.lobster(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onBackground,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const Spacer(),
@@ -122,7 +120,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                     style: GoogleFonts.lobster(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
-                      color: theme.colorScheme.onBackground.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -152,7 +150,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.5),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.5),
                 ),
               ),
               child: Column(
@@ -170,7 +168,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                         style: GoogleFonts.lobster(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onBackground,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -181,7 +179,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                     style: GoogleFonts.lobster(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
-                      color: theme.colorScheme.onBackground.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -242,7 +240,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.5),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.5),
                 ),
               ),
               child: Column(
@@ -260,7 +258,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                         style: GoogleFonts.lobster(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onBackground,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -271,7 +269,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
                     style: GoogleFonts.lobster(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
-                      color: theme.colorScheme.onBackground.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 16),

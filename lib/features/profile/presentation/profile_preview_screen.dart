@@ -13,7 +13,6 @@ class ProfilePreviewScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final currentPhotoIndex = useState(0);
     
     // Get current user profile
@@ -70,7 +69,7 @@ class ProfilePreviewScreen extends HookConsumerWidget {
       child: Column(
         children: [
           // Photo carousel section
-          Container(
+          SizedBox(
             height: 500,
             child: hasPhotos 
                 ? Stack(
@@ -136,7 +135,7 @@ class ProfilePreviewScreen extends HookConsumerWidget {
                                   shape: BoxShape.circle,
                                   color: currentPhotoIndex.value == entry.key
                                       ? Colors.white
-                                      : Colors.white.withOpacity(0.4),
+                                      : Colors.white.withValues(alpha: 0.4),
                                 ),
                               );
                             }).toList(),
@@ -153,7 +152,7 @@ class ProfilePreviewScreen extends HookConsumerWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.7),
+                            color: Colors.black.withValues(alpha: 0.7),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
@@ -237,7 +236,7 @@ class ProfilePreviewScreen extends HookConsumerWidget {
                         style: GoogleFonts.lobster(
                           fontSize: 24,
                           fontWeight: FontWeight.w400,
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -314,7 +313,7 @@ class ProfilePreviewScreen extends HookConsumerWidget {
                       profile.bio!,
                       style: GoogleFonts.lobster(
                         fontSize: 16,
-                        color: Colors.black.withOpacity(0.8),
+                        color: Colors.black.withValues(alpha: 0.8),
                         height: 1.4,
                       ),
                     ),
@@ -354,7 +353,7 @@ class ProfilePreviewScreen extends HookConsumerWidget {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -376,7 +375,7 @@ class ProfilePreviewScreen extends HookConsumerWidget {
                             prompt.answer,
                             style: GoogleFonts.lobster(
                               fontSize: 16,
-                              color: Colors.black.withOpacity(0.9),
+                              color: Colors.black.withValues(alpha: 0.9),
                               height: 1.3,
                             ),
                           ),
@@ -385,7 +384,7 @@ class ProfilePreviewScreen extends HookConsumerWidget {
                     ).animate()
                       .fadeIn(delay: (800 + index * 100).ms, duration: 600.ms)
                       .slideY(begin: 0.3, end: 0);
-                  }).toList(),
+                  }),
                 ] else
                   Container(
                     width: double.infinity,

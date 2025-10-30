@@ -82,14 +82,11 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   // Sign in with Google (enhanced with profile creation)
   Future<void> signInWithGoogle() async {
     try {
-      print('AuthNotifier: Starting Google Sign-In with profile creation...');
       _ref.read(authLoadingProvider.notifier).state = true;
       _ref.read(authErrorProvider.notifier).state = null;
       
-      final result = await _authService.signInWithGoogleAndCreateProfile();
-      print('AuthNotifier: Google Sign-In result: ${result?.user?.email ?? 'null'}');
+      await _authService.signInWithGoogleAndCreateProfile();
     } catch (e) {
-      print('AuthNotifier: Google Sign-In failed: $e');
       _ref.read(authErrorProvider.notifier).state = e.toString();
       rethrow;
     } finally {

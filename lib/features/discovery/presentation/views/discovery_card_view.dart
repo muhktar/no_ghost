@@ -216,7 +216,7 @@ class _DiscoveryCardView extends HookWidget {
         child: Stack(
           children: [
             // Photo
-            Container(
+            SizedBox(
               width: double.infinity,
               height: double.infinity,
               child: Image.network(

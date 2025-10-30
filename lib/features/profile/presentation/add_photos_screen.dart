@@ -57,16 +57,13 @@ class AddPhotosScreen extends HookConsumerWidget {
           if (canContinue)
             TextButton(
               onPressed: isLoading.value ? null : () async {
-                print('🚀 Done button pressed, starting upload...');
                 isLoading.value = true;
                 
                 // Filter out null values and use the new Firebase Storage upload method
                 final nonNullPhotos = photos.value.where((photo) => photo != null).toList();
-                print('📊 Photos to upload: ${nonNullPhotos.length} out of ${photos.value.length}');
                 
                 // Save to Firestore with Firebase Storage upload
                 final success = await userProfileNotifier.updatePhotosWithUpload(nonNullPhotos);
-                print('📤 Upload result: ${success ? "SUCCESS" : "FAILED"}');
                 isLoading.value = false;
                 
                 if (success) {
@@ -74,7 +71,7 @@ class AddPhotosScreen extends HookConsumerWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Photos uploaded and saved! (${uploadedCount}/6)',
+                        'Photos uploaded and saved! ($uploadedCount/6)',
                         style: GoogleFonts.lobster(fontSize: 12),
                       ),
                       backgroundColor: Colors.green,
@@ -120,7 +117,7 @@ class AddPhotosScreen extends HookConsumerWidget {
                 style: GoogleFonts.lobster(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onBackground,
+                  color: theme.colorScheme.onSurface,
                 ),
               ).animate()
                 .fadeIn(duration: 600.ms)
@@ -133,7 +130,7 @@ class AddPhotosScreen extends HookConsumerWidget {
                 style: GoogleFonts.lobster(
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
-                  color: theme.colorScheme.onBackground.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ).animate()
                 .fadeIn(delay: 200.ms, duration: 600.ms)
@@ -145,7 +142,7 @@ class AddPhotosScreen extends HookConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: canContinue ? Colors.green.withOpacity(0.1) : theme.colorScheme.primary.withOpacity(0.1),
+                  color: canContinue ? Colors.green.withValues(alpha: 0.1) : theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: canContinue ? Colors.green : theme.colorScheme.primary,
@@ -197,11 +194,9 @@ class AddPhotosScreen extends HookConsumerWidget {
                         
                         if (isEmpty) {
                           // Add photo
-                          print('📷 User tapping to add photo at index $index');
                           await _showPhotoSourceDialog(context, picker, photos, index);
                         } else {
                           // Remove or replace photo
-                          print('📷 User tapping to edit photo at index $index');
                           await _showPhotoOptionsDialog(context, picker, photos, index);
                         }
                       },
@@ -212,8 +207,8 @@ class AddPhotosScreen extends HookConsumerWidget {
                           border: Border.all(
                             color: isEmpty 
                                 ? (isRequired && uploadedCount < 3)
-                                    ? Colors.red.withOpacity(0.5)
-                                    : theme.colorScheme.outline.withOpacity(0.5)
+                                    ? Colors.red.withValues(alpha: 0.5)
+                                    : theme.colorScheme.outline.withValues(alpha: 0.5)
                                 : Colors.transparent,
                             width: isEmpty ? 2 : 0,
                           ),
@@ -226,8 +221,8 @@ class AddPhotosScreen extends HookConsumerWidget {
                                     Icons.add_photo_alternate,
                                     size: 40,
                                     color: (isRequired && uploadedCount < 3)
-                                        ? Colors.red.withOpacity(0.7)
-                                        : theme.colorScheme.onSurface.withOpacity(0.5),
+                                        ? Colors.red.withValues(alpha: 0.7)
+                                        : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
@@ -237,7 +232,7 @@ class AddPhotosScreen extends HookConsumerWidget {
                                       fontWeight: FontWeight.w500,
                                       color: (isRequired && uploadedCount < 3)
                                           ? Colors.red
-                                          : theme.colorScheme.onSurface.withOpacity(0.5),
+                                          : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                                     ),
                                   ),
                                   if (index == 0)
@@ -287,7 +282,7 @@ class AddPhotosScreen extends HookConsumerWidget {
                                     right: 8,
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.7),
+                                        color: Colors.black.withValues(alpha: 0.7),
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: IconButton(
@@ -339,14 +334,11 @@ class AddPhotosScreen extends HookConsumerWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: (canContinue && !isLoading.value) ? () async {
-                    print('🚀 Continue button pressed, starting upload...');
                     isLoading.value = true;
                     
                     // Save photos with Firebase Storage upload before continuing
                     final nonNullPhotos = photos.value.where((photo) => photo != null).toList();
-                    print('📊 Photos to upload: ${nonNullPhotos.length} out of ${photos.value.length}');
                     final success = await userProfileNotifier.updatePhotosWithUpload(nonNullPhotos);
-                    print('📤 Upload result: ${success ? "SUCCESS" : "FAILED"}');
                     isLoading.value = false;
                     
                     if (success) {
@@ -390,7 +382,7 @@ class AddPhotosScreen extends HookConsumerWidget {
                           style: GoogleFonts.lobster(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: canContinue ? Colors.white : theme.colorScheme.onSurface.withOpacity(0.5),
+                            color: canContinue ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                           ),
                         ),
                 ),
@@ -432,16 +424,12 @@ class AddPhotosScreen extends HookConsumerWidget {
               ),
               onTap: () async {
                 Navigator.of(context).pop();
-                print('📸 Taking photo from camera...');
                 final photo = await picker.pickImage(source: ImageSource.camera);
                 if (photo != null) {
-                  print('✅ Photo captured from camera: ${photo.path}');
                   final newPhotos = List<dynamic>.from(photos.value);
                   newPhotos[index] = photo;
                   photos.value = newPhotos;
-                  print('📋 Updated photos array, non-null count: ${newPhotos.where((p) => p != null).length}');
                 } else {
-                  print('❌ No photo captured from camera');
                 }
               },
             ),
@@ -453,16 +441,12 @@ class AddPhotosScreen extends HookConsumerWidget {
               ),
               onTap: () async {
                 Navigator.of(context).pop();
-                print('📸 Picking photo from gallery...');
                 final photo = await picker.pickImage(source: ImageSource.gallery);
                 if (photo != null) {
-                  print('✅ Photo selected from gallery: ${photo.path}');
                   final newPhotos = List<dynamic>.from(photos.value);
                   newPhotos[index] = photo;
                   photos.value = newPhotos;
-                  print('📋 Updated photos array, non-null count: ${newPhotos.where((p) => p != null).length}');
                 } else {
-                  print('❌ No photo selected from gallery');
                 }
               },
             ),

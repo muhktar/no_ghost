@@ -48,7 +48,7 @@ class WelcomeScreen extends HookConsumerWidget {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: theme.colorScheme.primary.withOpacity(0.2),
+                          color: theme.colorScheme.primary.withValues(alpha: 0.2),
                           blurRadius: 15,
                           offset: const Offset(0, 5),
                         ),
@@ -85,7 +85,7 @@ class WelcomeScreen extends HookConsumerWidget {
                     style: GoogleFonts.lobster(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
-                      color: theme.colorScheme.onBackground.withOpacity(0.7),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     textAlign: TextAlign.center,
                   ).animate()
@@ -149,7 +149,7 @@ class WelcomeScreen extends HookConsumerWidget {
                       borderRadius: BorderRadius.circular(4),
                       color: currentPage.value == index
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.primary.withOpacity(0.3),
+                          : theme.colorScheme.primary.withValues(alpha: 0.3),
                     ),
                   ).animate()
                     .scale(
@@ -196,7 +196,7 @@ class WelcomeScreen extends HookConsumerWidget {
                     style: GoogleFonts.lobster(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
-                      color: theme.colorScheme.onBackground.withOpacity(0.5),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                     textAlign: TextAlign.center,
                   ).animate()
@@ -228,7 +228,7 @@ class WelcomeScreen extends HookConsumerWidget {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(50),
             ),
             child: Icon(
@@ -245,7 +245,7 @@ class WelcomeScreen extends HookConsumerWidget {
             style: GoogleFonts.lobster(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onBackground,
+              color: theme.colorScheme.onSurface,
             ),
             textAlign: TextAlign.center,
           ),
@@ -257,7 +257,7 @@ class WelcomeScreen extends HookConsumerWidget {
             style: GoogleFonts.lobster(
               fontSize: 16,
               fontWeight: FontWeight.w400,
-              color: theme.colorScheme.onBackground.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               height: 1.5,
             ),
             textAlign: TextAlign.center,

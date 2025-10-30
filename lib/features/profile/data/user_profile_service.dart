@@ -19,7 +19,6 @@ class UserProfileService {
       }
       return null;
     } catch (e) {
-      print('Error getting user profile: $e');
       return null;
     }
   }
@@ -37,7 +36,6 @@ class UserProfileService {
       await _firestore.collection(_collection).doc(user.uid).set(profile.toFirestore());
       return true;
     } catch (e) {
-      print('Error creating user profile: $e');
       return false;
     }
   }
@@ -54,7 +52,6 @@ class UserProfileService {
       await _firestore.collection(_collection).doc(profile.userId).update(updatedProfile.toFirestore());
       return true;
     } catch (e) {
-      print('Error updating user profile: $e');
       return false;
     }
   }
@@ -62,16 +59,12 @@ class UserProfileService {
   // Update just the photos
   Future<bool> updateUserPhotos(String userId, List<String> photoUrls) async {
     try {
-      print('💾 Updating user photos in Firestore for user: $userId');
-      print('📸 Photo URLs to save: ${photoUrls.length} photos');
       for (int i = 0; i < photoUrls.length; i++) {
-        print('  Photo ${i + 1}: ${photoUrls[i]}');
       }
 
       // Get current profile to check completion status
       final currentProfile = await getCurrentUserProfile();
       if (currentProfile == null) {
-        print('❌ Could not get current profile');
         return false;
       }
 
@@ -90,11 +83,8 @@ class UserProfileService {
         'isProfileComplete': isComplete,
       });
 
-      print('✅ Photos updated successfully in Firestore');
-      print('📋 Profile completion status: ${isComplete ? "COMPLETE" : "INCOMPLETE"} (${updatedProfile.completionStatus})');
       return true;
     } catch (e) {
-      print('❌ Error updating user photos: $e');
       return false;
     }
   }
@@ -105,7 +95,6 @@ class UserProfileService {
       // Get current profile to check completion status
       final currentProfile = await getCurrentUserProfile();
       if (currentProfile == null) {
-        print('❌ Could not get current profile');
         return false;
       }
 
@@ -124,11 +113,8 @@ class UserProfileService {
         'isProfileComplete': isComplete,
       });
 
-      print('✅ Prompts updated successfully in Firestore');
-      print('📋 Profile completion status: ${isComplete ? "COMPLETE" : "INCOMPLETE"} (${updatedProfile.completionStatus})');
       return true;
     } catch (e) {
-      print('Error updating user prompts: $e');
       return false;
     }
   }
@@ -147,7 +133,6 @@ class UserProfileService {
       // Get current profile to check completion status
       final currentProfile = await getCurrentUserProfile();
       if (currentProfile == null) {
-        print('❌ Could not get current profile');
         return false;
       }
 
@@ -179,11 +164,8 @@ class UserProfileService {
 
       await _firestore.collection(_collection).doc(userId).update(updateData);
 
-      print('✅ Basic info updated successfully in Firestore');
-      print('📋 Profile completion status: ${isComplete ? "COMPLETE" : "INCOMPLETE"} (${updatedProfile.completionStatus})');
       return true;
     } catch (e) {
-      print('Error updating basic info: $e');
       return false;
     }
   }
@@ -197,7 +179,6 @@ class UserProfileService {
       });
       return true;
     } catch (e) {
-      print('Error updating user preferences: $e');
       return false;
     }
   }
@@ -229,7 +210,6 @@ class UserProfileService {
           .take(limit) // Limit final results
           .toList();
     } catch (e) {
-      print('Error getting potential matches: $e');
       return [];
     }
   }
@@ -248,14 +228,12 @@ class UserProfileService {
         // Get current user's profile to determine their gender
         final currentUserProfile = await getCurrentUserProfile();
         if (currentUserProfile?.gender == null) {
-          print('❌ Current user has no gender set, showing no profiles');
           return <UserProfile>[];
         }
 
         final currentUserGender = currentUserProfile!.gender!;
         final targetGender = _getOppositeGender(currentUserGender);
 
-        print('🔍 Discovery: Current user gender: $currentUserGender, looking for: $targetGender');
 
         final profiles = snapshot.docs
             .where((doc) => doc.id != user.uid) // Exclude self
@@ -266,7 +244,6 @@ class UserProfileService {
               final isCorrectGender = profileGender == targetGender;
 
               if (!isCorrectGender) {
-                print('🔍 Filtering out ${profile.name} (${profile.gender}) - wrong gender');
               }
 
               return isCorrectGender;
@@ -274,10 +251,8 @@ class UserProfileService {
             .take(20) // Limit final results
             .toList();
 
-        print('🔍 Discovery: Found ${profiles.length} profiles for ${currentUserGender} user');
         return profiles;
       } catch (e) {
-        print('❌ Error in getDiscoveryProfiles: $e');
         return <UserProfile>[];
       }
     });
@@ -313,7 +288,6 @@ class UserProfileService {
             .take(10) // Limit final results
             .toList();
       } catch (e) {
-        print('❌ Error in getSuggestedProfiles: $e');
         return <UserProfile>[];
       }
     });
@@ -348,7 +322,6 @@ class UserProfileService {
       await _firestore.collection(_collection).doc(userId).delete();
       return true;
     } catch (e) {
-      print('Error deleting user profile: $e');
       return false;
     }
   }
@@ -359,7 +332,6 @@ class UserProfileService {
       final doc = await _firestore.collection(_collection).doc(userId).get();
       return doc.exists;
     } catch (e) {
-      print('Error checking user profile exists: $e');
       return false;
     }
   }

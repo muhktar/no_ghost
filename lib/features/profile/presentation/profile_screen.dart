@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -42,7 +41,7 @@ class ProfileScreen extends HookConsumerWidget {
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: theme.colorScheme.outline.withOpacity(0.5),
+                      color: theme.colorScheme.outline.withValues(alpha: 0.5),
                     ),
                   ),
                   child: Column(
@@ -261,7 +260,7 @@ class ProfileScreen extends HookConsumerWidget {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
         ),
       ),
       child: ListTile(
@@ -315,30 +314,34 @@ class ProfileScreen extends HookConsumerWidget {
           ElevatedButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              
+
               final authNotifier = ref.read(authNotifierProvider.notifier);
               try {
                 await authNotifier.signOut();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Signed out successfully!',
-                      style: GoogleFonts.lobster(fontSize: 12),
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Signed out successfully!',
+                        style: GoogleFonts.lobster(fontSize: 12),
+                      ),
+                      backgroundColor: Colors.green,
                     ),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                context.go('/welcome');
+                  );
+                  context.go('/welcome');
+                }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Sign out failed: $e',
-                      style: GoogleFonts.lobster(fontSize: 12),
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Sign out failed: $e',
+                        style: GoogleFonts.lobster(fontSize: 12),
+                      ),
+                      backgroundColor: Colors.red,
                     ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(

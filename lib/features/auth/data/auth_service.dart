@@ -31,10 +31,8 @@ class AuthService {
       
       return credential;
     } on FirebaseAuthException catch (e) {
-      print('Sign up error: ${e.message}');
       throw _getAuthException(e);
     } catch (e) {
-      print('Unexpected sign up error: $e');
       throw 'An unexpected error occurred. Please try again.';
     }
   }
@@ -48,10 +46,8 @@ class AuthService {
       );
       return credential;
     } on FirebaseAuthException catch (e) {
-      print('Sign in error: ${e.message}');
       throw _getAuthException(e);
     } catch (e) {
-      print('Unexpected sign in error: $e');
       throw 'An unexpected error occurred. Please try again.';
     }
   }
@@ -59,35 +55,27 @@ class AuthService {
   // Google Sign In
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      print('Starting Google Sign-In process...');
       
       // Check if already signed in
       final currentGoogleUser = _googleSignIn.currentUser;
-      print('Current Google user: ${currentGoogleUser?.email ?? 'none'}');
       
       // Sign out first to ensure fresh sign-in
       if (currentGoogleUser != null) {
-        print('Signing out current Google user...');
         await _googleSignIn.signOut();
       }
       
       // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       
-      print('Google user result: ${googleUser?.email ?? 'null'}');
       
       // If user cancels the sign-in
       if (googleUser == null) {
-        print('User cancelled Google Sign-In');
         return null;
       }
 
-      print('Getting Google authentication details...');
       // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      print('Access token: ${googleAuth.accessToken != null ? 'present' : 'null'}');
-      print('ID token: ${googleAuth.idToken != null ? 'present' : 'null'}');
 
       // Create a new credential
       final credential = GoogleAuthProvider.credential(
@@ -95,18 +83,13 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
 
-      print('Signing in to Firebase with Google credential...');
       // Sign in to Firebase with the Google credential
       final result = await _auth.signInWithCredential(credential);
-      print('Firebase sign-in successful: ${result.user?.email}');
       
       return result;
     } on FirebaseAuthException catch (e) {
-      print('Firebase auth error: ${e.code} - ${e.message}');
       throw _getAuthException(e);
     } catch (e) {
-      print('Unexpected Google sign in error: $e');
-      print('Error type: ${e.runtimeType}');
       throw 'Failed to sign in with Google. Please try again.';
     }
   }
@@ -132,10 +115,8 @@ class AuthService {
       // Sign in to Firebase with the Apple OAuth credential
       return await _auth.signInWithCredential(oauthCredential);
     } on FirebaseAuthException catch (e) {
-      print('Apple sign in error: ${e.message}');
       throw _getAuthException(e);
     } catch (e) {
-      print('Unexpected Apple sign in error: $e');
       throw 'Failed to sign in with Apple. Please try again.';
     }
   }
@@ -159,7 +140,6 @@ class AuthService {
         timeout: const Duration(seconds: 60), // Timeout after 60 seconds
       );
     } catch (e) {
-      print('Phone verification error: $e');
       throw 'Failed to verify phone number. Please try again.';
     }
   }
@@ -173,10 +153,8 @@ class AuthService {
       );
       return await _auth.signInWithCredential(credential);
     } on FirebaseAuthException catch (e) {
-      print('Phone verification error: ${e.message}');
       throw _getAuthException(e);
     } catch (e) {
-      print('Unexpected phone verification error: $e');
       throw 'Invalid verification code. Please try again.';
     }
   }
@@ -186,10 +164,8 @@ class AuthService {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      print('Password reset error: ${e.message}');
       throw _getAuthException(e);
     } catch (e) {
-      print('Unexpected password reset error: $e');
       throw 'Failed to send password reset email. Please try again.';
     }
   }
@@ -202,7 +178,6 @@ class AuthService {
       // Sign out from Firebase
       await _auth.signOut();
     } catch (e) {
-      print('Sign out error: $e');
       throw 'Failed to sign out. Please try again.';
     }
   }
@@ -238,7 +213,6 @@ class AuthService {
       // Create new profile
       return await _profileService.createUserProfile(user);
     } catch (e) {
-      print('Error creating initial profile: $e');
       return false;
     }
   }
@@ -252,7 +226,6 @@ class AuthService {
       }
       return credential;
     } catch (e) {
-      print('Error in sign up with profile creation: $e');
       rethrow;
     }
   }
@@ -266,7 +239,6 @@ class AuthService {
       }
       return credential;
     } catch (e) {
-      print('Error in Google sign in with profile creation: $e');
       rethrow;
     }
   }
@@ -274,9 +246,7 @@ class AuthService {
   // Helper method to determine where user should be routed after login
   Future<String> getPostLoginRoute() async {
     final user = currentUser;
-    print('🔍 getPostLoginRoute: Current user: ${user?.email}');
     if (user == null) {
-      print('❌ No current user, routing to welcome');
       return '/welcome';
     }
 
@@ -285,26 +255,14 @@ class AuthService {
       await Future.delayed(const Duration(milliseconds: 500));
 
       final profile = await getUserProfile();
-      print('🔍 getPostLoginRoute: Profile found: ${profile != null}');
 
       if (profile == null) {
         // No profile exists, create one and go to setup
-        print('🔍 getPostLoginRoute: No profile found, creating initial profile');
-        final created = await createInitialProfile(user);
-        print('🔍 getPostLoginRoute: Profile creation result: $created');
+        await createInitialProfile(user);
         return '/profile-setup';
       }
 
       // Profile exists, check completion status
-      print('🔍 getPostLoginRoute: Profile data:');
-      print('  - Name: ${profile.name}');
-      print('  - Age: ${profile.age}');
-      print('  - Gender: ${profile.gender}');
-      print('  - hasBasicInfo: ${profile.hasBasicInfo}');
-      print('  - hasMinimumPhotos: ${profile.hasMinimumPhotos} (${profile.photoUrls.length}/3)');
-      print('  - hasMinimumPrompts: ${profile.hasMinimumPrompts} (${profile.prompts.length}/3)');
-      print('  - completionStatus: ${profile.completionStatus}');
-      print('  - isProfileComplete: ${profile.isProfileComplete}');
 
       final status = profile.completionStatus;
       final route = switch (status) {
@@ -314,11 +272,8 @@ class AuthService {
         ProfileCompletionStatus.promptsOnly => '/profile-setup', // Incomplete profile -> setup
       };
 
-      print('🔍 getPostLoginRoute: Routing to: $route');
       return route;
     } catch (e) {
-      print('❌ Error determining post-login route: $e');
-      print('❌ Stack trace: ${StackTrace.current}');
       return '/profile-setup'; // Default to setup on error
     }
   }
@@ -331,10 +286,8 @@ class AuthService {
         await user.delete();
       }
     } on FirebaseAuthException catch (e) {
-      print('Delete account error: ${e.message}');
       throw _getAuthException(e);
     } catch (e) {
-      print('Unexpected delete account error: $e');
       throw 'Failed to delete account. Please try again.';
     }
   }
