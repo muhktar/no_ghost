@@ -31,6 +31,38 @@ class ProfileCard extends HookConsumerWidget {
     // Create content for each photo (prompts, captions, or voice memos)
     final photoContent = _buildPhotoContent(profile);
 
+    // Calculate text height for current photo to prevent overlap
+    double _calculateTextHeight(Map<String, dynamic> content) {
+      if (content.isEmpty) return 0;
+
+      final textStyle = TextStyle(
+        fontSize: content['type'] == 'prompt' ? 28 : 16,
+        fontWeight: FontWeight.bold,
+        height: 1.1,
+      );
+
+      String text = '';
+      if (content['type'] == 'prompt') {
+        text = '${content['question']}\n${content['answer']}';
+      } else if (content['type'] == 'voice') {
+        text = '${content['question']}\n${content['answer']}';
+      } else {
+        text = content['text'] ?? '';
+      }
+
+      // More accurate text height calculation
+      final lines = (text.length / 25).ceil(); // More conservative character count per line
+      final fontSize = textStyle.fontSize!;
+      final lineHeight = fontSize * (textStyle.height ?? 1.0);
+      return lines * lineHeight + 30; // Add more padding for safety
+    }
+
+    final currentContent = photoContent.isNotEmpty && currentPhotoIndex.value < photoContent.length
+        ? photoContent[currentPhotoIndex.value]
+        : <String, dynamic>{};
+    final estimatedTextHeight = _calculateTextHeight(currentContent);
+    final pillBottomPosition = estimatedTextHeight > 80 ? (280.0 + estimatedTextHeight - 85) : 280.0;
+
     return Container(
       height: double.infinity,
       width: double.infinity,
@@ -84,13 +116,13 @@ class ProfileCard extends HookConsumerWidget {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha:0.3),
                                     blurRadius: 12,
                                     offset: const Offset(0, 6),
                                     spreadRadius: 2,
                                   ),
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha:0.1),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                     spreadRadius: 0,
@@ -134,7 +166,7 @@ class ProfileCard extends HookConsumerWidget {
                                           child: Icon(
                                             Icons.person,
                                             size: 64,
-                                            color: theme.colorScheme.onSurface.withOpacity(0.5),
+                                            color: theme.colorScheme.onSurface.withValues(alpha:0.5),
                                           ),
                                         ),
                                       ),
@@ -154,48 +186,102 @@ class ProfileCard extends HookConsumerWidget {
 
 
 
-              // Dynamic Text Content that changes with photos  
+              // Photo Counter Button (like reference photo) - dynamically positioned to avoid overlap
+              if (profile.photoUrls.length > 1)
+                Positioned(
+                  bottom: pillBottomPosition,
+                  left: 24,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha:0.7),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha:0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '${currentPhotoIndex.value + 1} of ${profile.photoUrls.length}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Dynamic Text Content that changes with photos - moved slightly to the right
               Positioned(
-                bottom: 200, // Moved down further for full gradient coverage
-                left: 0,
-                right: 0,
+                bottom: 220,
+                left: 40, // Moved to the right from 24
+                right: 10,
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.only(top: 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Photo Counter Button (like reference photo) - moved to left above prompt
-                      if (profile.photoUrls.length > 1)
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            '${currentPhotoIndex.value + 1} of ${profile.photoUrls.length}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                      
                       // Dynamic content based on current photo
                       if (photoContent.isNotEmpty && currentPhotoIndex.value < photoContent.length)
                         _buildTextContent(photoContent[currentPhotoIndex.value]),
                     ],
                   ),
+                ),
+              ),
+
+              // Occupation and Location in bottom white space
+              Positioned(
+                bottom: 695, // In the actual white space below photos
+                left: 55,
+                right: 30,
+                child: Row(
+                  children: [
+                    // Occupation on the left
+                    if (profile.occupation != null) ...[
+                      Icon(
+                        Icons.work_outline,
+                        size: 18,
+                        color: Colors.black87,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          profile.occupation!,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      if (profile.location != null) const SizedBox(width: 50),
+                    ],
+                    // Location on the right
+                    if (profile.location != null) ...[
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 18,
+                        color: Colors.black87,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          profile.location!,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
