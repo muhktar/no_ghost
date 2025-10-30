@@ -154,7 +154,7 @@ class ProfileCard extends HookConsumerWidget {
 
 
 
-              // Dynamic Text Content that changes with photos  
+              // Dynamic Text Content that changes with photos
               Positioned(
                 bottom: 200, // Moved down further for full gradient coverage
                 left: 0,

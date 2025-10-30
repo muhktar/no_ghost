@@ -1305,6 +1305,11 @@ class _DiscoveryCardView extends HookWidget {
         final photoIndex = i ~/ 2;
         if (photoIndex < profile.photoUrls.length) {
           contentItems.add(_buildPhotoCard(profile.photoUrls[photoIndex], photoIndex, context));
+
+          // Add basic info card after the first photo
+          if (photoIndex == 0) {
+            contentItems.add(_buildBasicInfoCard(context));
+          }
         }
       } else {
         // Odd index: add prompt if available
@@ -1710,6 +1715,128 @@ class _DiscoveryCardView extends HookWidget {
             ),
             textAlign: TextAlign.center,
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBasicInfoCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.brown[50],
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Name and age
+          Row(
+            children: [
+              Text(
+                profile.name ?? 'No Name',
+                style: GoogleFonts.lobster(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              if (profile.age != null) ...[
+                const SizedBox(width: 8),
+                Text(
+                  '${profile.age}',
+                  style: GoogleFonts.lobster(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Location and occupation
+          if (profile.location != null || profile.occupation != null) ...[
+            if (profile.occupation != null)
+              Row(
+                children: [
+                  Icon(
+                    Icons.work_outline,
+                    size: 18,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      profile.occupation!,
+                      style: GoogleFonts.lobster(
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            if (profile.location != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_on_outlined,
+                    size: 18,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      profile.location!,
+                      style: GoogleFonts.lobster(
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+
+          // Bio section
+          if (profile.bio != null && profile.bio!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.grey[200]!,
+                ),
+              ),
+              child: Text(
+                profile.bio!,
+                style: GoogleFonts.lobster(
+                  fontSize: 16,
+                  color: Colors.black.withOpacity(0.8),
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
