@@ -409,8 +409,9 @@ class DiscoveryScreen extends HookConsumerWidget {
 
                 const SizedBox(width: 12),
 
-                // Connect Button (rectangular with rounded edges)
+                // Connect Button (shortened)
                 Expanded(
+                  flex: 2,
                   child: Container(
                     height: 50,
                     decoration: BoxDecoration(
@@ -443,6 +444,36 @@ class DiscoveryScreen extends HookConsumerWidget {
                         ),
                       ),
                     ),
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                // Ghost Button (right side)
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    onPressed: () {
+                      // TODO: Add ghost functionality
+                    },
+                    icon: const Icon(
+                      Icons.visibility_off,  // Ghost-like (invisible) icon
+                      color: Colors.black87,
+                      size: 22,
+                    ),
+                    padding: EdgeInsets.zero,
                   ),
                 ),
               ],

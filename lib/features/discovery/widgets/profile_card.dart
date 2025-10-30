@@ -50,16 +50,18 @@ class ProfileCard extends HookConsumerWidget {
         text = content['text'] ?? '';
       }
 
-      // Approximate text height calculation
-      final lines = (text.length / 30).ceil(); // Rough estimation of characters per line
-      return lines * textStyle.fontSize! * (textStyle.height ?? 1.0) + 40; // Add padding
+      // More accurate text height calculation
+      final lines = (text.length / 25).ceil(); // More conservative character count per line
+      final fontSize = textStyle.fontSize!;
+      final lineHeight = fontSize * (textStyle.height ?? 1.0);
+      return lines * lineHeight + 30; // Add more padding for safety
     }
 
     final currentContent = photoContent.isNotEmpty && currentPhotoIndex.value < photoContent.length
         ? photoContent[currentPhotoIndex.value]
         : <String, dynamic>{};
     final estimatedTextHeight = _calculateTextHeight(currentContent);
-    final pillBottomPosition = estimatedTextHeight > 120 ? (280.0 + estimatedTextHeight - 120) : 280.0;
+    final pillBottomPosition = estimatedTextHeight > 80 ? (280.0 + estimatedTextHeight - 85) : 280.0;
 
     return Container(
       height: double.infinity,
@@ -114,13 +116,13 @@ class ProfileCard extends HookConsumerWidget {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha:0.3),
                                     blurRadius: 12,
                                     offset: const Offset(0, 6),
                                     spreadRadius: 2,
                                   ),
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha:0.1),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                     spreadRadius: 0,
@@ -164,7 +166,7 @@ class ProfileCard extends HookConsumerWidget {
                                           child: Icon(
                                             Icons.person,
                                             size: 64,
-                                            color: theme.colorScheme.onSurface.withOpacity(0.5),
+                                            color: theme.colorScheme.onSurface.withValues(alpha:0.5),
                                           ),
                                         ),
                                       ),
@@ -193,11 +195,11 @@ class ProfileCard extends HookConsumerWidget {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha:0.7),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha:0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -218,7 +220,7 @@ class ProfileCard extends HookConsumerWidget {
               Positioned(
                 bottom: 220,
                 left: 40, // Moved to the right from 24
-                right: 0,
+                right: 10,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 24),
                   child: Column(
