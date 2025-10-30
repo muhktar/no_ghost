@@ -37,7 +37,7 @@ class LockInDialog extends HookConsumerWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.lockInColor.withOpacity(0.3),
+              color: AppTheme.lockInColor.withValues(alpha: 0.3),
               blurRadius: 30,
               offset: const Offset(0, 15),
             ),
@@ -63,8 +63,8 @@ class LockInDialog extends HookConsumerWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: AppTheme.lockInColor.withOpacity(
-                              0.3 * (1 - animationController.value)
+                            color: AppTheme.lockInColor.withValues(
+                              alpha: 0.3 * (1 - animationController.value)
                             ),
                             width: 2,
                           ),
@@ -87,7 +87,7 @@ class LockInDialog extends HookConsumerWidget {
                             gradient: LinearGradient(
                               colors: [
                                 AppTheme.lockInColor,
-                                AppTheme.lockInColor.withOpacity(0.8),
+                                AppTheme.lockInColor.withValues(alpha: 0.8),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -95,7 +95,7 @@ class LockInDialog extends HookConsumerWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.lockInColor.withOpacity(0.4),
+                                color: AppTheme.lockInColor.withValues(alpha: 0.4),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -129,7 +129,7 @@ class LockInDialog extends HookConsumerWidget {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
+                                  color: Colors.black.withValues(alpha: 0.2),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -171,7 +171,7 @@ class LockInDialog extends HookConsumerWidget {
             Text(
               'Show serious interest! They\'ll receive a special notification that you\'re genuinely interested in connecting.',
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 height: 1.4,
               ),
               textAlign: TextAlign.center,
@@ -187,13 +187,13 @@ class LockInDialog extends HookConsumerWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppTheme.lockInColor.withOpacity(0.1),
-                    AppTheme.lockInColor.withOpacity(0.05),
+                    AppTheme.lockInColor.withValues(alpha: 0.1),
+                    AppTheme.lockInColor.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: AppTheme.lockInColor.withOpacity(0.3),
+                  color: AppTheme.lockInColor.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -228,7 +228,7 @@ class LockInDialog extends HookConsumerWidget {
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
-                        color: theme.colorScheme.outline.withOpacity(0.5),
+                        color: theme.colorScheme.outline.withValues(alpha: 0.5),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -274,10 +274,10 @@ class LockInDialog extends HookConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.1),
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: theme.colorScheme.primary.withOpacity(0.2),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(

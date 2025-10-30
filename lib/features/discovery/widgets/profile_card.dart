@@ -4,7 +4,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../shared/models/user_profile.dart';
-import 'dart:math' as math;
 
 class ProfileCard extends HookConsumerWidget {
   final UserProfile profile;
