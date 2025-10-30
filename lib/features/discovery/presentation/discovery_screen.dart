@@ -542,26 +542,23 @@ class DiscoveryScreen extends HookConsumerWidget {
                 ),
               ),
 
-              // Connect Button
+              // Visibility Off Button
               Container(
+                width: 36,
                 height: 36,
                 decoration: BoxDecoration(
                   color: Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: TextButton(
-                  onPressed: () => _showConnectDialog(ref, currentProfile, context),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    minimumSize: Size.zero,
-                  ),
-                  child: const Text(
-                    'Connect',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                child: IconButton(
+                  onPressed: () {
+                    // No functionality for now as requested
+                  },
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(
+                    Icons.visibility_off,
+                    size: 20,
+                    color: Colors.black87,
                   ),
                 ),
               ),
@@ -635,26 +632,23 @@ class DiscoveryScreen extends HookConsumerWidget {
                 ),
               ),
 
-              // Connect Button
+              // Visibility Off Button
               Container(
+                width: 36,
                 height: 36,
                 decoration: BoxDecoration(
                   color: Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: TextButton(
-                  onPressed: () => _showConnectDialog(ref, currentProfile, context),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    minimumSize: Size.zero,
-                  ),
-                  child: const Text(
-                    'Connect',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                child: IconButton(
+                  onPressed: () {
+                    // No functionality for now as requested
+                  },
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(
+                    Icons.visibility_off,
+                    size: 20,
+                    color: Colors.black87,
                   ),
                 ),
               ),
@@ -908,49 +902,6 @@ class _DiscoveryProfilePreview extends HookWidget {
                           ],
                         ),
                       ),
-                      // Next profile button (X symbol)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: Colors.grey.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () {
-                              final currentIndex = ref.read(currentProfileIndexProvider);
-                              final profilesAsync = ref.read(discoveryProfilesProvider);
-
-                              // Add current index to previous stack
-                              final previousStack = ref.read(previousProfilesStackProvider);
-                              ref.read(previousProfilesStackProvider.notifier).state =
-                                  [...previousStack, currentIndex];
-
-                              // Move to next profile
-                              profilesAsync.whenData((profiles) {
-                                if (currentIndex < profiles.length - 1) {
-                                  ref.read(currentProfileIndexProvider.notifier).state = currentIndex + 1;
-                                } else {
-                                  // No more profiles - reset index to show empty state
-                                  ref.read(currentProfileIndexProvider.notifier).state = profiles.length;
-                                }
-                              });
-                            },
-                            icon: const Icon(
-                              Icons.close,
-                              size: 18,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ).animate()
                     .fadeIn(delay: 200.ms, duration: 600.ms)
@@ -1081,12 +1032,144 @@ class _DiscoveryProfilePreview extends HookWidget {
                     .fadeIn(delay: 600.ms, duration: 600.ms)
                     .slideY(begin: 0.3, end: 0),
 
-                const SizedBox(height: 80), // Extra space for action buttons
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+
+          // Bottom action buttons
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // X (Skip) button
+                GestureDetector(
+                  onTap: () => _handleSkipProfile(context),
+                  child: Container(
+                    width: 60,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      size: 24,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                // Connect button (wider with heart and message icons)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _handleConnectFromProfilePreview(context),
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 16,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.favorite_outline,
+                            size: 20,
+                            color: Colors.black87,
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.message_outlined,
+                            size: 20,
+                            color: Colors.black87,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Connect',
+                            style: GoogleFonts.lobster(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _handleSkipProfile(BuildContext context) {
+    // Move to next profile logic (same as X button in other views)
+    final currentIndex = ref.read(currentProfileIndexProvider);
+    final profilesAsync = ref.read(discoveryProfilesProvider);
+
+    // Add current index to previous stack
+    final previousStack = ref.read(previousProfilesStackProvider);
+    ref.read(previousProfilesStackProvider.notifier).state =
+        [...previousStack, currentIndex];
+
+    // Move to next profile
+    profilesAsync.whenData((profiles) {
+      if (currentIndex < profiles.length - 1) {
+        ref.read(currentProfileIndexProvider.notifier).state = currentIndex + 1;
+      } else {
+        // No more profiles - reset index to show empty state
+        ref.read(currentProfileIndexProvider.notifier).state = profiles.length;
+      }
+    });
+  }
+
+  void _handleConnectFromProfilePreview(BuildContext context) {
+    // Same functionality as the top-right connect button - show connect dialog
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ConnectBottomSheet(profile: profile),
     );
   }
 }
