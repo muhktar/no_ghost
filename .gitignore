@@ -62,3 +62,6 @@ Thumbs.db
 test_driver/
 integration_test/driver.dart
 coverage/
+
+# Sample images (large test files)
+assets/sample_images/
