@@ -577,6 +577,55 @@ ScaffoldMessenger.of(context).showSnackBar(...);
 - `lib/features/profile/presentation/add_prompts_screen.dart`
 - `lib/features/profile/presentation/basic_info_screen.dart`
 
+### Session 5: Dynamic Photo Counter Positioning
+**Objective**: Implement dynamic positioning for photo counter badge in Profile Preview carousel view to prevent overlap with long prompt text
+
+**Problem Identified**
+- Photo counter badge had fixed positioning at `bottom: 280`
+- Long prompt text could overlap with counter badge
+- Discovery screen already had dynamic positioning that Profile Preview lacked
+- Fixed positioning wasn't resilient to varying prompt text lengths
+
+**Solution Applied**
+- Implemented `calculateTextHeight()` function to estimate prompt text height
+- Added dynamic `pillBottomPosition` calculation based on text content
+- Split photo counter and prompts into separate Positioned widgets
+- Counter now moves up automatically when prompts are long
+
+**Technical Details**
+```dart
+double calculateTextHeight(int photoIndex) {
+  if (photoIndex >= profile.prompts.length) return 0;
+  final prompt = profile.prompts[photoIndex];
+  final text = '${prompt.question}\n${prompt.answer}';
+  final lines = (text.length / 25).ceil();  // Character count per line
+  const questionFontSize = 28.0;
+  const lineHeight = 1.1;
+  return lines * (questionFontSize * lineHeight) + 30;  // Add padding
+}
+
+final estimatedTextHeight = calculateTextHeight(currentPhotoIndex.value);
+final pillBottomPosition = estimatedTextHeight > 80
+    ? (280.0 + estimatedTextHeight - 85)
+    : 280.0;
+```
+
+**Changes Made**
+- Photo counter badge: `bottom: pillBottomPosition` (dynamic)
+- Prompts text: `bottom: 220, left: 40` (fixed)
+- Removed Column grouping (no longer needed with dynamic positioning)
+- Counter adjusts position based on estimated prompt height
+- Matches Discovery screen behavior for consistency
+
+**Benefits**
+- ✅ No overlap regardless of prompt length
+- ✅ Consistent UX between Discovery and Profile Preview
+- ✅ Professional, polished appearance
+- ✅ Resilient to user-edited prompts with varying lengths
+
+**File Modified**:
+- `lib/features/profile/presentation/views/profile_preview_carousel_view.dart`
+
 ---
 
 ## TODO Items & Incomplete Features

@@ -18,6 +18,28 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
     required this.selectedViewMode,
   });
 
+  // Calculate text height for dynamic photo counter positioning
+  double _calculateTextHeight(int photoIndex) {
+    if (photoIndex >= profile.prompts.length) return 0;
+
+    final prompt = profile.prompts[photoIndex];
+    final text = '${prompt.question}\n${prompt.answer}';
+
+    // More accurate text height calculation
+    final lines = (text.length / 25).ceil(); // Conservative character count per line
+    const questionFontSize = 28.0;
+    const lineHeight = 1.1;
+    return lines * (questionFontSize * lineHeight) + 30; // Add padding for safety
+  }
+
+  // Calculate dynamic bottom position for photo counter pill
+  double _getPillBottomPosition(int photoIndex) {
+    final estimatedTextHeight = _calculateTextHeight(photoIndex);
+    return estimatedTextHeight > 80
+        ? (280.0 + estimatedTextHeight - 85)
+        : 280.0;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pageController = usePageController(viewportFraction: 0.85);
@@ -149,48 +171,51 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
               .scale(begin: const Offset(0.95, 0.95), duration: 400.ms),
           ),
 
-          // Dynamic Prompt Text and Photo Counter (grouped together)
+          // Photo Counter Badge - dynamically positioned to avoid overlap
+          if (profile.photoUrls.length > 1)
+            Positioned(
+              bottom: _getPillBottomPosition(currentPhotoIndex.value),
+              left: 24,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  '${currentPhotoIndex.value + 1} of ${profile.photoUrls.length}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ),
+
+          // Dynamic Prompt Text that changes with photos
           Positioned(
             bottom: 220,
-            left: 24,
+            left: 40,
             right: 10,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Photo counter badge
-                if (profile.photoUrls.length > 1)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12, left: 0),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      '${currentPhotoIndex.value + 1} of ${profile.photoUrls.length}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-
-                // Prompt text below the photo counter
-                if (currentPhotoIndex.value < profile.prompts.length)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Column(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Show prompt if available for current photo
+                  if (currentPhotoIndex.value < profile.prompts.length)
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         // Bold prompt question
                         Text(
@@ -202,8 +227,6 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
                             height: 1.1,
                             letterSpacing: -0.5,
                           ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
                         // Normal response text
@@ -215,15 +238,13 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
                             fontWeight: FontWeight.w400,
                             height: 1.3,
                           ),
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ).animate()
                       .fadeIn(duration: 400.ms)
                       .slideY(begin: 0.3, end: 0),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
 
