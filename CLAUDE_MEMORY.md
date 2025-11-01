@@ -510,6 +510,15 @@ users/
 ## TODO Items & Incomplete Features
 
 ### High Priority
+- [ ] **Refactor Profile Preview Screen**: Split 1600+ line file into modular views
+  - Current: Single monolithic file with all 3 views
+  - Target: Separate files like Discovery screen architecture
+  - Files to create:
+    - `views/profile_preview_carousel_view.dart` (~500 lines)
+    - `views/profile_preview_full_view.dart` (~450 lines)
+    - `views/profile_preview_card_view.dart` (~400 lines)
+  - Main coordinator should be ~150 lines
+  - Benefits: Easier maintenance, parallel development, cleaner git diffs
 - [ ] **Lock-In Backend**: Implement Firestore logic for premium match requests
 - [ ] **Likes System**: Create likes/matches collection and real-time tracking
 - [ ] **Match Detection**: When both users like each other, create match
