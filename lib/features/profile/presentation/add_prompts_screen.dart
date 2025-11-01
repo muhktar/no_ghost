@@ -46,7 +46,7 @@ class AddPromptsScreen extends HookConsumerWidget {
     final theme = Theme.of(context);
     final existingPrompts = ref.watch(userPromptsProvider);
     final userProfileNotifier = ref.watch(userProfileNotifierProvider.notifier);
-    
+
     final selectedPrompts = useState<List<PromptAnswer>>([]);
     final isEditingPrompt = useState<int?>(null);
     final answerController = useTextEditingController();
@@ -89,11 +89,15 @@ class AddPromptsScreen extends HookConsumerWidget {
                     type: PromptType.text,
                   )
                 ).toList();
-                
+
                 final success = await userProfileNotifier.updatePrompts(prompts);
-                
+
+                if (!context.mounted) return;
+
                 if (success) {
+                  if (!context.mounted) return;
                   context.pop();
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -104,6 +108,7 @@ class AddPromptsScreen extends HookConsumerWidget {
                     ),
                   );
                 } else {
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -327,11 +332,15 @@ class AddPromptsScreen extends HookConsumerWidget {
                         type: PromptType.text,
                       )
                     ).toList();
-                    
+
                     final success = await userProfileNotifier.updatePrompts(prompts);
-                    
+
+                    if (!context.mounted) return;
+
                     if (success) {
+                      if (!context.mounted) return;
                       context.pop();
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -342,6 +351,7 @@ class AddPromptsScreen extends HookConsumerWidget {
                         ),
                       );
                     } else {
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(

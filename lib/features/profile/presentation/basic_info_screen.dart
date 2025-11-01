@@ -77,9 +77,12 @@ class BasicInfoScreen extends HookConsumerWidget {
           location: locationController.text.trim().isEmpty ? null : locationController.text.trim(),
         );
 
+        if (!context.mounted) return;
         _showSnackBar(context, 'Basic info saved successfully!', Colors.green);
+        if (!context.mounted) return;
         context.pop(); // Go back to profile setup
       } catch (e) {
+        if (!context.mounted) return;
         _showSnackBar(context, 'Failed to save info: $e', Colors.red);
       } finally {
         isLoading.value = false;

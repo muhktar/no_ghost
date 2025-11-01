@@ -15,11 +15,11 @@ class AddPhotosScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final picker = ImagePicker();
-    
+
     // Get existing photos from Firestore
     final existingPhotos = ref.watch(userPhotoUrlsProvider);
     final userProfileNotifier = ref.watch(userProfileNotifierProvider.notifier);
-    
+
     // State for storing selected photos (mix of existing URLs and new XFiles)
     final photos = useState<List<dynamic>>(List.filled(6, null));
     final isLoading = useState(false);
@@ -65,9 +65,13 @@ class AddPhotosScreen extends HookConsumerWidget {
                 // Save to Firestore with Firebase Storage upload
                 final success = await userProfileNotifier.updatePhotosWithUpload(nonNullPhotos);
                 isLoading.value = false;
-                
+
+                if (!context.mounted) return;
+
                 if (success) {
+                  if (!context.mounted) return;
                   context.pop();
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -78,6 +82,7 @@ class AddPhotosScreen extends HookConsumerWidget {
                     ),
                   );
                 } else {
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -335,14 +340,18 @@ class AddPhotosScreen extends HookConsumerWidget {
                 child: ElevatedButton(
                   onPressed: (canContinue && !isLoading.value) ? () async {
                     isLoading.value = true;
-                    
+
                     // Save photos with Firebase Storage upload before continuing
                     final nonNullPhotos = photos.value.where((photo) => photo != null).toList();
                     final success = await userProfileNotifier.updatePhotosWithUpload(nonNullPhotos);
                     isLoading.value = false;
-                    
+
+                    if (!context.mounted) return;
+
                     if (success) {
+                      if (!context.mounted) return;
                       context.pop();
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -353,6 +362,7 @@ class AddPhotosScreen extends HookConsumerWidget {
                         ),
                       );
                     } else {
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
