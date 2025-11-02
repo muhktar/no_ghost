@@ -9,6 +9,7 @@ import '../../features/auth/presentation/profile_setup_screen.dart';
 import '../../features/profile/presentation/basic_info_screen.dart';
 import '../../features/profile/presentation/add_photos_screen.dart';
 import '../../features/profile/presentation/add_prompts_screen.dart';
+import '../../features/profile/presentation/add_ghost_prompts_screen.dart';
 import '../../features/profile/presentation/profile_preview_screen.dart';
 import '../../features/discovery/presentation/discovery_screen.dart';
 import '../../features/suggestions/presentation/suggestions_screen.dart';
@@ -64,6 +65,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/add-prompts',
         name: 'add-prompts',
         builder: (context, state) => const AddPromptsScreen(),
+      ),
+      GoRoute(
+        path: '/add-ghost-prompts',
+        name: 'add-ghost-prompts',
+        builder: (context, state) => const AddGhostPromptsScreen(),
       ),
       GoRoute(
         path: '/profile-preview',

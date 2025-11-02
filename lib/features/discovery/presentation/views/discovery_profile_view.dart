@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/models/user_profile.dart';
 import '../../widgets/connect_bottom_sheet.dart';
+import '../../providers/discovery_providers.dart';
 import '../discovery_screen.dart';
 
 class DiscoveryProfileView extends HookWidget {
@@ -21,6 +23,7 @@ class DiscoveryProfileView extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final viewMode = ref.watch(discoveryViewModeProvider);
+    final isGhostMode = ref.watch(isGhostModeActiveProvider);
 
     return Column(
       children: [
@@ -31,7 +34,7 @@ class DiscoveryProfileView extends HookWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Previous Button
+              // Previous Button (left)
               Container(
                 width: 44,
                 height: 36,
@@ -78,33 +81,53 @@ class DiscoveryProfileView extends HookWidget {
                 ),
               ),
 
-              // Visibility Off Button
+              // Ghost Mode Toggle Button (right)
               Container(
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.1),
+                  color: isGhostMode ? Colors.lightBlue.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: isGhostMode
+                      ? [
+                          BoxShadow(
+                            color: Colors.lightBlue.withValues(alpha: 0.5),
+                            blurRadius: 15,
+                            offset: const Offset(0, 0),
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : null,
                 ),
                 child: IconButton(
                   onPressed: () {
-                    // No functionality for now as requested
+                    ref.read(isGhostModeActiveProvider.notifier).state = !isGhostMode;
                   },
                   padding: EdgeInsets.zero,
-                  icon: const Icon(
-                    Icons.visibility_off,
+                  icon: Icon(
+                    isGhostMode ? Icons.visibility : Icons.visibility_off,
                     size: 20,
-                    color: Colors.black87,
+                    color: isGhostMode ? Colors.lightBlue : Colors.black87,
                   ),
                 ),
-              ),
+              )
+                .animate(
+                  target: isGhostMode ? 1 : 0,
+                  onPlay: isGhostMode ? (controller) => controller.repeat(reverse: true) : null,
+                )
+                .scale(
+                  begin: const Offset(1.0, 1.0),
+                  end: const Offset(1.15, 1.15),
+                  duration: 800.ms,
+                  curve: Curves.easeInOut,
+                ),
             ],
           ),
         ),
 
         // Profile content below the top bar
         Expanded(
-          child: _DiscoveryProfilePreview(profile: profile, ref: ref),
+          child: _DiscoveryProfilePreview(profile: profile, ref: ref, isGhostMode: isGhostMode),
         ),
       ],
     );
@@ -146,17 +169,20 @@ class DiscoveryProfileView extends HookWidget {
 class _DiscoveryProfilePreview extends HookWidget {
   final UserProfile profile;
   final WidgetRef ref;
+  final bool isGhostMode;
 
   const _DiscoveryProfilePreview({
     required this.profile,
     required this.ref,
+    required this.isGhostMode,
   });
 
   @override
   Widget build(BuildContext context) {
     final currentPhotoIndex = useState(0);
     final hasPhotos = profile.photoUrls.isNotEmpty;
-    final hasPrompts = profile.prompts.isNotEmpty;
+    final promptsToUse = isGhostMode ? profile.ghostPrompts : profile.prompts;
+    final hasPrompts = promptsToUse.isNotEmpty;
 
     return SingleChildScrollView(
       child: Column(
@@ -172,31 +198,73 @@ class _DiscoveryProfilePreview extends HookWidget {
                         itemBuilder: (context, index, realIndex) {
                           return ClipRRect(
                             borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              profile.photoUrls[index],
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  color: Colors.grey[200],
-                                  child: const Center(
-                                    child: CircularProgressIndicator(),
+                            child: isGhostMode
+                                ? ImageFiltered(
+                                    imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                    child: Image.network(
+                                      profile.photoUrls[index],
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Container(
+                                          color: Colors.grey[200],
+                                          child: const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          color: Colors.grey[200],
+                                          child: const Icon(
+                                            Icons.broken_image,
+                                            size: 50,
+                                            color: Colors.grey,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  )
+                                    .animate(
+                                      onPlay: (controller) => controller.repeat(reverse: true),
+                                    )
+                                    .shimmer(
+                                      duration: 2000.ms,
+                                      color: Colors.lightBlue.withValues(alpha: 0.3),
+                                    )
+                                    .scale(
+                                      begin: const Offset(1.0, 1.0),
+                                      end: const Offset(1.02, 1.02),
+                                      duration: 1500.ms,
+                                      curve: Curves.easeInOut,
+                                    )
+                                : Image.network(
+                                    profile.photoUrls[index],
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        color: Colors.grey[200],
+                                        child: const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey[200],
+                                        child: const Icon(
+                                          Icons.broken_image,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.grey[200],
-                                  child: const Icon(
-                                    Icons.broken_image,
-                                    size: 50,
-                                    color: Colors.grey,
-                                  ),
-                                );
-                              },
-                            ),
                           );
                         },
                         options: CarouselOptions(
@@ -331,15 +399,15 @@ class _DiscoveryProfilePreview extends HookWidget {
 
                 const SizedBox(height: 8),
 
-                // Location and occupation
-                if (profile.location != null || profile.occupation != null)
+                // Location and occupation (hide occupation in ghost mode)
+                if (profile.location != null || (!isGhostMode && profile.occupation != null))
                   Row(
                     children: [
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (profile.occupation != null)
+                            if (!isGhostMode && profile.occupation != null)
                               Row(
                                 children: [
                                   Icon(
@@ -358,7 +426,7 @@ class _DiscoveryProfilePreview extends HookWidget {
                                 ],
                               ),
                             if (profile.location != null) ...[
-                              const SizedBox(height: 4),
+                              if (!isGhostMode && profile.occupation != null) const SizedBox(height: 4),
                               Row(
                                 children: [
                                   Icon(
@@ -428,7 +496,7 @@ class _DiscoveryProfilePreview extends HookWidget {
 
                   const SizedBox(height: 16),
 
-                  ...profile.prompts.asMap().entries.map((entry) {
+                  ...promptsToUse.asMap().entries.map((entry) {
                     final index = entry.key;
                     final prompt = entry.value;
                     return Container(

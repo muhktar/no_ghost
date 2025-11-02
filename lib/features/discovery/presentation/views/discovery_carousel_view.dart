@@ -5,6 +5,7 @@ import '../../../../shared/models/user_profile.dart';
 import '../../widgets/profile_card.dart';
 import '../../widgets/connect_bottom_sheet.dart';
 import '../discovery_screen.dart';
+import '../../providers/discovery_providers.dart';
 
 class DiscoveryCarouselView extends ConsumerWidget {
   final UserProfile profile;
@@ -17,6 +18,7 @@ class DiscoveryCarouselView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewMode = ref.watch(discoveryViewModeProvider);
+    final isGhostMode = ref.watch(isGhostModeActiveProvider);
 
     return Stack(
       children: [
@@ -24,13 +26,40 @@ class DiscoveryCarouselView extends ConsumerWidget {
         Positioned.fill(
           child: ProfileCard(
             profile: profile,
+            isGhostMode: isGhostMode,
             onPhotoTap: (index) {
               // Handle photo tap for carousel navigation
             },
-          ).animate()
+          )
+            .animate()
             .fadeIn(duration: 400.ms)
-            .scale(begin: const Offset(0.95, 0.95), duration: 400.ms),
+            .scale(begin: const Offset(0.95, 0.95), duration: 400.ms)
+            .animate(target: isGhostMode ? 1 : 0)
+            .shimmer(
+              duration: 800.ms,
+              color: Colors.lightBlue.withValues(alpha: 0.3),
+            ),
         ),
+
+        // Pulse overlay effect when ghost mode activates
+        if (isGhostMode)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.lightBlue.withValues(alpha: 0.5),
+                    width: 3,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              )
+                .animate(onPlay: (controller) => controller.repeat())
+                .fadeIn(duration: 400.ms)
+                .then()
+                .fadeOut(duration: 800.ms),
+            ),
+          ),
 
         // Top Bar (overlaid on card)
         Positioned(
@@ -203,19 +232,41 @@ class DiscoveryCarouselView extends ConsumerWidget {
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
+                      if (isGhostMode)
+                        BoxShadow(
+                          color: Colors.lightBlue.withValues(alpha: 0.5),
+                          blurRadius: 20,
+                          offset: const Offset(0, 0),
+                          spreadRadius: 2,
+                        ),
                     ],
                   ),
                   child: IconButton(
                     onPressed: () {
-                      // TODO: Add ghost functionality
+                      // Toggle ghost mode with animation
+                      ref.read(isGhostModeActiveProvider.notifier).state = !isGhostMode;
                     },
-                    icon: const Icon(
-                      Icons.visibility_off,  // Ghost-like (invisible) icon
-                      color: Colors.black87,
+                    icon: Icon(
+                      isGhostMode ? Icons.visibility : Icons.visibility_off,
+                      color: isGhostMode ? Colors.lightBlue : Colors.black87,
                       size: 22,
                     ),
                     padding: EdgeInsets.zero,
-                  ),
+                  )
+                    .animate(
+                      target: isGhostMode ? 1 : 0,
+                    )
+                    .scale(
+                      begin: const Offset(1.0, 1.0),
+                      end: const Offset(1.2, 1.2),
+                      duration: 200.ms,
+                      curve: Curves.easeOut,
+                    )
+                    .then()
+                    .shimmer(
+                      duration: 1500.ms,
+                      color: Colors.lightBlue.withValues(alpha: 0.3),
+                    ),
                 ),
               ],
             ),

@@ -119,6 +119,36 @@ class UserProfileService {
     }
   }
 
+  // Update ghost prompts
+  Future<bool> updateUserGhostPrompts(String userId, List<ProfilePrompt> ghostPrompts) async {
+    try {
+      // Get current profile to check completion status
+      final currentProfile = await getCurrentUserProfile();
+      if (currentProfile == null) {
+        return false;
+      }
+
+      // Create updated profile with new ghost prompts
+      final updatedProfile = currentProfile.copyWith(
+        ghostPrompts: ghostPrompts,
+        lastActive: DateTime.now(),
+      );
+
+      // Check if profile is now complete and update accordingly
+      final isComplete = updatedProfile.completionStatus == ProfileCompletionStatus.complete;
+
+      await _firestore.collection(_collection).doc(userId).update({
+        'ghostPrompts': ghostPrompts.map((prompt) => prompt.toJson()).toList(),
+        'lastActive': Timestamp.fromDate(DateTime.now()),
+        'isProfileComplete': isComplete,
+      });
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // Update basic profile info (name, age, bio, etc.)
   Future<bool> updateBasicInfo({
     required String userId,

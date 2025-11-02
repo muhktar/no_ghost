@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,12 +10,14 @@ class ProfileCard extends HookConsumerWidget {
   final UserProfile profile;
   final Function(int)? onPhotoTap;
   final Function(bool)? onScrollDirectionChange;
+  final bool isGhostMode;
 
   const ProfileCard({
     super.key,
     required this.profile,
     this.onPhotoTap,
     this.onScrollDirectionChange,
+    this.isGhostMode = false,
   });
 
   @override
@@ -28,7 +31,7 @@ class ProfileCard extends HookConsumerWidget {
     final scrollDirection = useState<String>('');
     
     // Create content for each photo (prompts, captions, or voice memos)
-    final photoContent = _buildPhotoContent(profile);
+    final photoContent = _buildPhotoContent(profile, isGhostMode);
 
     // Calculate text height for current photo to prevent overlap
     double calculateTextHeight(Map<String, dynamic> content) {
@@ -149,26 +152,50 @@ class ProfileCard extends HookConsumerWidget {
                                           );
                                         }
                                       },
-                                      child: CachedNetworkImage(
-                                        imageUrl: profile.photoUrls[index],
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) => Container(
-                                          color: theme.colorScheme.surface,
-                                          child: Center(
-                                            child: CircularProgressIndicator(
-                                              color: theme.colorScheme.primary,
+                                      child: isGhostMode
+                                          ? ImageFiltered(
+                                              imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                              child: CachedNetworkImage(
+                                                imageUrl: profile.photoUrls[index],
+                                                fit: BoxFit.cover,
+                                                placeholder: (context, url) => Container(
+                                                  color: theme.colorScheme.surface,
+                                                  child: Center(
+                                                    child: CircularProgressIndicator(
+                                                      color: theme.colorScheme.primary,
+                                                    ),
+                                                  ),
+                                                ),
+                                                errorWidget: (context, url, error) => Container(
+                                                  color: theme.colorScheme.surface,
+                                                  child: Icon(
+                                                    Icons.person,
+                                                    size: 64,
+                                                    color: theme.colorScheme.onSurface.withValues(alpha:0.5),
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                          : CachedNetworkImage(
+                                              imageUrl: profile.photoUrls[index],
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) => Container(
+                                                color: theme.colorScheme.surface,
+                                                child: Center(
+                                                  child: CircularProgressIndicator(
+                                                    color: theme.colorScheme.primary,
+                                                  ),
+                                                ),
+                                              ),
+                                              errorWidget: (context, url, error) => Container(
+                                                color: theme.colorScheme.surface,
+                                                child: Icon(
+                                                  Icons.person,
+                                                  size: 64,
+                                                  color: theme.colorScheme.onSurface.withValues(alpha:0.5),
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                        errorWidget: (context, url, error) => Container(
-                                          color: theme.colorScheme.surface,
-                                          child: Icon(
-                                            Icons.person,
-                                            size: 64,
-                                            color: theme.colorScheme.onSurface.withValues(alpha:0.5),
-                                          ),
-                                        ),
-                                      ),
                                     ),
                                   ],
                                 ),
@@ -241,8 +268,8 @@ class ProfileCard extends HookConsumerWidget {
                 right: 30,
                 child: Row(
                   children: [
-                    // Occupation on the left
-                    if (profile.occupation != null) ...[
+                    // Occupation on the left (hidden in ghost mode)
+                    if (!isGhostMode && profile.occupation != null) ...[
                       Icon(
                         Icons.work_outline,
                         size: 18,
@@ -261,7 +288,7 @@ class ProfileCard extends HookConsumerWidget {
                       ),
                       if (profile.location != null) const SizedBox(width: 50),
                     ],
-                    // Location on the right
+                    // Location on the right (always visible)
                     if (profile.location != null) ...[
                       Icon(
                         Icons.location_on_outlined,
@@ -289,13 +316,16 @@ class ProfileCard extends HookConsumerWidget {
   }
 
   // Build content for each photo (prompts, captions, or voice memos)
-  List<Map<String, dynamic>> _buildPhotoContent(UserProfile profile) {
+  List<Map<String, dynamic>> _buildPhotoContent(UserProfile profile, bool isGhostMode) {
     List<Map<String, dynamic>> content = [];
-    
+
+    // Use ghost prompts if ghost mode is active
+    final promptsToUse = isGhostMode ? profile.ghostPrompts : profile.prompts;
+
     for (int i = 0; i < profile.photoUrls.length; i++) {
-      if (i < profile.prompts.length) {
+      if (i < promptsToUse.length) {
         // Photo has associated prompt
-        final prompt = profile.prompts[i];
+        final prompt = promptsToUse[i];
         if (prompt.type == PromptType.voice) {
           content.add({
             'type': 'voice',
@@ -311,13 +341,14 @@ class ProfileCard extends HookConsumerWidget {
         }
       } else {
         // Photo only has caption (use occupation or fallback)
+        // In ghost mode, don't show occupation
         content.add({
           'type': 'caption',
-          'text': profile.occupation ?? 'Photo ${i + 1}',
+          'text': isGhostMode ? 'Photo ${i + 1}' : (profile.occupation ?? 'Photo ${i + 1}'),
         });
       }
     }
-    
+
     return content;
   }
 

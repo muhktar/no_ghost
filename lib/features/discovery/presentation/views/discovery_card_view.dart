@@ -1,9 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/models/user_profile.dart';
 import '../../widgets/connect_bottom_sheet.dart';
+import '../../providers/discovery_providers.dart';
 import '../discovery_screen.dart';
 
 class DiscoveryCardView extends HookWidget {
@@ -19,6 +22,7 @@ class DiscoveryCardView extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final viewMode = ref.watch(discoveryViewModeProvider);
+    final isGhostMode = ref.watch(isGhostModeActiveProvider);
 
     return Column(
       children: [
@@ -29,7 +33,7 @@ class DiscoveryCardView extends HookWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Previous Button
+              // Previous Button (left)
               Container(
                 width: 44,
                 height: 36,
@@ -76,33 +80,53 @@ class DiscoveryCardView extends HookWidget {
                 ),
               ),
 
-              // Visibility Off Button
+              // Ghost Mode Toggle Button (right)
               Container(
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.1),
+                  color: isGhostMode ? Colors.lightBlue.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: isGhostMode
+                      ? [
+                          BoxShadow(
+                            color: Colors.lightBlue.withValues(alpha: 0.5),
+                            blurRadius: 15,
+                            offset: const Offset(0, 0),
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : null,
                 ),
                 child: IconButton(
                   onPressed: () {
-                    // No functionality for now as requested
+                    ref.read(isGhostModeActiveProvider.notifier).state = !isGhostMode;
                   },
                   padding: EdgeInsets.zero,
-                  icon: const Icon(
-                    Icons.visibility_off,
+                  icon: Icon(
+                    isGhostMode ? Icons.visibility : Icons.visibility_off,
                     size: 20,
-                    color: Colors.black87,
+                    color: isGhostMode ? Colors.lightBlue : Colors.black87,
                   ),
                 ),
-              ),
+              )
+                .animate(
+                  target: isGhostMode ? 1 : 0,
+                  onPlay: isGhostMode ? (controller) => controller.repeat(reverse: true) : null,
+                )
+                .scale(
+                  begin: const Offset(1.0, 1.0),
+                  end: const Offset(1.15, 1.15),
+                  duration: 800.ms,
+                  curve: Curves.easeInOut,
+                ),
             ],
           ),
         ),
 
         // Profile content below the top bar
         Expanded(
-          child: _DiscoveryCardView(profile: profile, ref: ref),
+          child: _DiscoveryCardView(profile: profile, ref: ref, isGhostMode: isGhostMode),
         ),
       ],
     );
@@ -144,10 +168,12 @@ class DiscoveryCardView extends HookWidget {
 class _DiscoveryCardView extends HookWidget {
   final UserProfile profile;
   final WidgetRef ref;
+  final bool isGhostMode;
 
   const _DiscoveryCardView({
     required this.profile,
     required this.ref,
+    required this.isGhostMode,
   });
 
   @override
@@ -155,9 +181,10 @@ class _DiscoveryCardView extends HookWidget {
     // Create alternating list of photos and prompts
     final List<Widget> contentItems = [];
 
-    final maxItems = profile.photoUrls.length > profile.prompts.length
+    final promptsToUse = isGhostMode ? profile.ghostPrompts : profile.prompts;
+    final maxItems = profile.photoUrls.length > promptsToUse.length
         ? profile.photoUrls.length
-        : profile.prompts.length;
+        : promptsToUse.length;
 
     for (int i = 0; i < maxItems * 2; i++) {
       if (i % 2 == 0) {
@@ -174,8 +201,8 @@ class _DiscoveryCardView extends HookWidget {
       } else {
         // Odd index: add prompt if available
         final promptIndex = i ~/ 2;
-        if (promptIndex < profile.prompts.length) {
-          contentItems.add(_buildPromptCard(profile.prompts[promptIndex], promptIndex, context));
+        if (promptIndex < promptsToUse.length) {
+          contentItems.add(_buildPromptCard(promptsToUse[promptIndex], promptIndex, context));
         }
       }
     }
@@ -219,29 +246,69 @@ class _DiscoveryCardView extends HookWidget {
             SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: Image.network(
-                photoUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: CircularProgressIndicator(),
+              child: isGhostMode
+                  ? ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: Image.network(
+                        photoUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Icon(
+                              Icons.broken_image,
+                              size: 50,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                      .animate(
+                        onPlay: (controller) => controller.repeat(reverse: true),
+                      )
+                      .shimmer(
+                        duration: 2000.ms,
+                        color: Colors.lightBlue.withValues(alpha: 0.3),
+                      )
+                      .scale(
+                        begin: const Offset(1.0, 1.0),
+                        end: const Offset(1.02, 1.02),
+                        duration: 1500.ms,
+                        curve: Curves.easeInOut,
+                      )
+                  : Image.network(
+                      photoUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[200],
+                          child: const Icon(
+                            Icons.broken_image,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Icon(
-                      Icons.broken_image,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-                  );
-                },
-              ),
             ),
 
             // Gradient overlay at bottom
@@ -628,9 +695,9 @@ class _DiscoveryCardView extends HookWidget {
 
           const SizedBox(height: 12),
 
-          // Location and occupation
-          if (profile.location != null || profile.occupation != null) ...[
-            if (profile.occupation != null)
+          // Location and occupation (hide occupation in ghost mode)
+          if (profile.location != null || (!isGhostMode && profile.occupation != null)) ...[
+            if (!isGhostMode && profile.occupation != null)
               Row(
                 children: [
                   Icon(
@@ -651,7 +718,7 @@ class _DiscoveryCardView extends HookWidget {
                 ],
               ),
             if (profile.location != null) ...[
-              const SizedBox(height: 8),
+              if (!isGhostMode && profile.occupation != null) const SizedBox(height: 8),
               Row(
                 children: [
                   Icon(

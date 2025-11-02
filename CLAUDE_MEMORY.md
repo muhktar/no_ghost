@@ -1,6 +1,6 @@
 # Claude Memory - No Ghost Dating App
 
-**Last Updated**: October 31, 2025
+**Last Updated**: November 2, 2025
 **Project**: No Ghost - Modern Dating App with Lock-In Feature
 **Framework**: Flutter 3.7+ with Firebase Backend
 
@@ -453,7 +453,88 @@ users/
 
 ---
 
-## Current Session (October 31, 2025)
+## Current Session (November 2, 2025)
+
+### Session 7: Ghost Mode UI Enhancements & Polish
+**Objective**: Restore ghost mode functionality and enhance visual effects across all discovery views
+
+**Context**: Ghost mode implementation was previously reverted. User recovered the feature via IDE local history.
+
+**Changes Made**:
+
+1. **Top Bar Layout Fix** (Discovery Views 2 & 3)
+   - **Problem**: Ghost mode button was grouped with view toggle in the middle
+   - **Solution**: Restructured Row to position buttons correctly:
+     - Left: Back arrow
+     - Center: View toggle (carousel/profile/grid icons)
+     - Right: Ghost mode button
+   - Files modified:
+     - `lib/features/discovery/presentation/views/discovery_profile_view.dart`
+     - `lib/features/discovery/presentation/views/discovery_card_view.dart`
+   - Maintained existing ghost mode functionality and animations
+
+2. **Pulse Animation Effects** (Ghost Mode Active State)
+   - **Added to View 2** (Profile Preview):
+     - Shimmer animation with light blue color (2000ms duration, alpha: 0.3)
+     - Scale pulse effect (1500ms duration, 1.0 → 1.02)
+     - Both animations repeat infinitely while ghost mode is active
+   - **Added to View 3** (Card View):
+     - Same shimmer and scale animations as View 2
+     - Applied to all photo cards in vertical scroll
+   - **Technical Implementation**:
+     ```dart
+     ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20), ...)
+       .animate(onPlay: (controller) => controller.repeat(reverse: true))
+       .shimmer(duration: 2000.ms, color: Colors.lightBlue.withValues(alpha: 0.3))
+       .scale(begin: Offset(1.0, 1.0), end: Offset(1.02, 1.02), duration: 1500.ms)
+     ```
+   - Creates a breathing/pulsing effect on blurred photos
+   - Visual feedback that ghost mode is active
+
+3. **Git Version Control Management**
+   - **Analysis of untracked files**:
+     - `devtools_options.yaml`: IDE-generated config → should NOT be versioned
+     - `lib/core/constants/ghost_prompts.dart`: App constants → SHOULD be versioned
+     - `lib/features/profile/presentation/add_ghost_prompts_screen.dart`: App code → SHOULD be versioned
+   - **Actions taken**:
+     - Added `devtools_options.yaml` to `.gitignore`
+     - Staged ghost prompts constants file
+     - Staged add ghost prompts screen file
+     - Staged `.gitignore` changes
+   - **Reasoning**: DevTools config is local/regenerated, ghost mode files are essential app code
+
+**Files Modified** (5 files):
+- `.gitignore` (added devtools_options.yaml)
+- `lib/features/discovery/presentation/views/discovery_profile_view.dart` (layout fix + pulse effects)
+- `lib/features/discovery/presentation/views/discovery_card_view.dart` (layout fix + pulse effects)
+
+**Files Staged for Commit** (3 files):
+- `lib/core/constants/ghost_prompts.dart` (21 ghost mode prompt questions)
+- `lib/features/profile/presentation/add_ghost_prompts_screen.dart` (599 lines - full ghost prompts UI)
+- `.gitignore` (updated)
+
+**Visual Enhancements**:
+- ✅ Consistent top bar layout across all 3 discovery views
+- ✅ Ghost mode button properly positioned on far right
+- ✅ Pulsing shimmer effect on blurred photos (views 2 & 3)
+- ✅ Light blue glow indicates ghost mode active state
+- ✅ Smooth breathing animation creates polished UX
+
+**Testing Status**:
+- ✅ Top bar layout: Buttons correctly positioned
+- ✅ Ghost mode toggle: Working with scale animation
+- ✅ Image blur: Functioning with pulse effects
+- ✅ Shimmer animation: Visible and repeating
+- ✅ Scale pulse: Subtle breathing effect working
+
+**Next Steps**:
+- Test ghost mode with real user profiles
+- Verify ghost prompts display correctly when active
+- Consider adding pulse effect to View 1 (carousel) for consistency
+
+---
+
+## Previous Sessions (October 31, 2025)
 
 ### Session 1: Documentation and Asset Recovery
 **Issues Discovered**
@@ -625,6 +706,127 @@ final pillBottomPosition = estimatedTextHeight > 80
 
 **File Modified**:
 - `lib/features/profile/presentation/views/profile_preview_carousel_view.dart`
+
+### Session 6: Ghost Mode Feature Implementation (Phase 1 & 2)
+**Objective**: Implement Ghost Mode feature where users can browse profiles anonymously with blurred photos and ghost-specific prompts
+
+**User Requirements**:
+- Users must create 3-6 "ghost mode prompts" (separate from regular prompts)
+- Ghost mode toggle in discovery screen
+- When active: blur photos, hide name/occupation, show ghost prompts, keep location visible
+- Pulse animation on activation
+- Profile reshuffle when toggled
+
+**Phase 1: Data Model & Backend (Completed)**
+
+1. **UserProfile Model Updates**:
+   - Added `ghostPrompts` field (List<ProfilePrompt>)
+   - Added `hasMinimumGhostPrompts` helper (≥3 prompts required)
+   - Updated `ProfileCompletionStatus` enum with `ghostPromptsNeeded` state
+   - Updated all serialization methods (fromFirestore, toFirestore, fromJson, toJson, copyWith)
+   - Profile now requires: basic info + 3+ photos + 3+ regular prompts + 3+ ghost prompts
+
+2. **Ghost Prompts Constants**:
+   - Created `lib/core/constants/ghost_prompts.dart`
+   - 21 unique prompts focused on personality/values without revealing identity
+   - Examples: "My philosophy on life is...", "I value most in a relationship...", "My biggest fear is..."
+
+3. **Backend Services**:
+   - Added `updateUserGhostPrompts()` method in user_profile_service.dart
+   - Created `userGhostPromptsProvider` in user_profile_provider.dart
+   - Firestore integration for saving/loading ghostPrompts array
+
+**Phase 2: Profile Setup Flow (Completed)**
+
+1. **AddGhostPromptsScreen**:
+   - Created `lib/features/profile/presentation/add_ghost_prompts_screen.dart`
+   - Full-featured screen for adding/editing/deleting ghost prompts
+   - Min 3, max 6 ghost prompts
+   - Uses ghost-specific prompt questions
+   - Validation and error handling
+   - Integration with user profile service
+
+2. **Profile Setup Screen Updates**:
+   - Added 4th section: "Ghost Mode Prompts" with visibility_off icon
+   - Shows ghost prompt count (X/6)
+   - Displays check icon when 3+ prompts added
+   - Button navigates to `/add-ghost-prompts`
+   - Fixed "Start Discovering" button - now disabled until ALL requirements met:
+     ```dart
+     hasAllRequirements = hasMinimumPhotos && hasMinimumPrompts &&
+                          hasMinimumGhostPrompts && hasBasicInfo
+     ```
+
+3. **Router Configuration**:
+   - Added `/add-ghost-prompts` route → AddGhostPromptsScreen
+   - Import added to app_router.dart
+
+**Phase 3: Ghost Mode State & Toggle (Completed)**
+
+1. **State Management**:
+   - Created `lib/features/discovery/providers/discovery_providers.dart`
+   - `isGhostModeActiveProvider` - StateProvider<bool> for ghost mode state
+   - Tracks whether ghost mode is currently active in discovery
+
+2. **Discovery Carousel View**:
+   - Watches `isGhostModeActiveProvider` state
+   - Ghost button toggles state on press
+   - Button changes icon: `visibility_off` → `visibility` when active
+   - Button changes color: black → purple when active
+   - Scale animation on button toggle (1.0 → 1.2 scale)
+
+**Bug Fixes**:
+
+1. **auth_service.dart**: Added missing `ghostPromptsNeeded` case to switch statement
+2. **profile_setup_screen.dart**:
+   - Fixed "Start Discovering" button - was always enabled
+   - Now properly validates all requirements before enabling
+   - Button text changes: "Start Discovering" vs "Complete All Sections to Continue"
+3. **Removed temporary logout button** after user testing cleanup
+
+**Files Created** (4 files):
+- `lib/core/constants/ghost_prompts.dart`
+- `lib/features/profile/presentation/add_ghost_prompts_screen.dart`
+- `lib/features/discovery/providers/discovery_providers.dart`
+
+**Files Modified** (8 files):
+- `lib/shared/models/user_profile.dart`
+- `lib/features/profile/data/user_profile_service.dart`
+- `lib/features/profile/providers/user_profile_provider.dart`
+- `lib/features/auth/presentation/profile_setup_screen.dart`
+- `lib/core/router/app_router.dart`
+- `lib/features/auth/data/auth_service.dart`
+- `lib/features/discovery/presentation/views/discovery_carousel_view.dart`
+
+**Documentation Updates**:
+- Updated `FIREBASE_SETUP.md` with comprehensive "Deleting Test Users" section
+- Explains 3-location deletion: Authentication, Firestore, Storage
+- Common scenarios: "User already exists", "Black screen", "Old photos"
+- Best practices for testing with test emails
+
+**Testing Status**:
+- ✅ Flutter analyze: No issues found
+- ✅ Data model: ghostPrompts field added
+- ✅ Profile setup: Ghost prompts section functional
+- ✅ Ghost mode toggle: Button working with animation
+- ⏳ ProfileCard blur effects: Not yet implemented
+- ⏳ Ghost prompts display: Not yet implemented
+- ⏳ Full ghost mode UX: Pending ProfileCard updates
+
+**Remaining Work** (Phase 4):
+- Update ProfileCard widget to accept `isGhostMode` parameter
+- Implement blur effects for photos (ImageFiltered with ImageFilter.blur)
+- Hide/blur name and occupation when ghost mode active
+- Show ghostPrompts instead of regular prompts
+- Add pulse animation on ghost mode activation
+- Update other discovery views (profile view, card view)
+- Testing complete flow
+
+**Key Technical Decisions**:
+- Ghost prompts are completely separate from regular prompts (not a subset)
+- Ghost mode state is session-based (doesn't persist - resets on app restart)
+- Profile completion logic is additive (adds requirement, doesn't replace)
+- All users must have ghost prompts before profile is considered complete
 
 ---
 

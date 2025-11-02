@@ -8,6 +8,7 @@ class UserProfile {
   final String? gender;
   final List<String> photoUrls;
   final List<ProfilePrompt> prompts;
+  final List<ProfilePrompt> ghostPrompts; // Prompts shown in ghost mode
   final String? bio;
   final String? occupation;
   final String? location;
@@ -26,6 +27,7 @@ class UserProfile {
     this.gender,
     this.photoUrls = const [],
     this.prompts = const [],
+    this.ghostPrompts = const [],
     this.bio,
     this.occupation,
     this.location,
@@ -52,6 +54,9 @@ class UserProfile {
       prompts: (data['prompts'] as List? ?? [])
           .map((promptJson) => ProfilePrompt.fromJson(promptJson))
           .toList(),
+      ghostPrompts: (data['ghostPrompts'] as List? ?? [])
+          .map((promptJson) => ProfilePrompt.fromJson(promptJson))
+          .toList(),
       bio: data['bio'] as String?,
       occupation: data['occupation'] as String?,
       location: data['location'] as String?,
@@ -75,6 +80,9 @@ class UserProfile {
       gender: json['gender'] as String?,
       photoUrls: List<String>.from(json['photoUrls'] as List? ?? []),
       prompts: (json['prompts'] as List? ?? [])
+          .map((promptJson) => ProfilePrompt.fromJson(promptJson))
+          .toList(),
+      ghostPrompts: (json['ghostPrompts'] as List? ?? [])
           .map((promptJson) => ProfilePrompt.fromJson(promptJson))
           .toList(),
       bio: json['bio'] as String?,
@@ -103,6 +111,7 @@ class UserProfile {
       'gender': gender,
       'photoUrls': photoUrls,
       'prompts': prompts.map((prompt) => prompt.toJson()).toList(),
+      'ghostPrompts': ghostPrompts.map((prompt) => prompt.toJson()).toList(),
       'bio': bio,
       'occupation': occupation,
       'location': location,
@@ -123,6 +132,7 @@ class UserProfile {
       'gender': gender,
       'photoUrls': photoUrls,
       'prompts': prompts.map((prompt) => prompt.toJson()).toList(),
+      'ghostPrompts': ghostPrompts.map((prompt) => prompt.toJson()).toList(),
       'bio': bio,
       'occupation': occupation,
       'location': location,
@@ -143,6 +153,7 @@ class UserProfile {
     String? gender,
     List<String>? photoUrls,
     List<ProfilePrompt>? prompts,
+    List<ProfilePrompt>? ghostPrompts,
     String? bio,
     String? occupation,
     String? location,
@@ -161,6 +172,7 @@ class UserProfile {
       gender: gender ?? this.gender,
       photoUrls: photoUrls ?? this.photoUrls,
       prompts: prompts ?? this.prompts,
+      ghostPrompts: ghostPrompts ?? this.ghostPrompts,
       bio: bio ?? this.bio,
       occupation: occupation ?? this.occupation,
       location: location ?? this.location,
@@ -176,13 +188,15 @@ class UserProfile {
   // Helper methods for profile completion logic
   bool get hasMinimumPhotos => photoUrls.length >= 3;
   bool get hasMinimumPrompts => prompts.length >= 3;
+  bool get hasMinimumGhostPrompts => ghostPrompts.length >= 3;
   bool get hasBasicInfo => name != null && age != null && gender != null;
-  
+
   ProfileCompletionStatus get completionStatus {
     if (!hasBasicInfo) return ProfileCompletionStatus.notStarted;
     if (hasMinimumPhotos && !hasMinimumPrompts) return ProfileCompletionStatus.photosOnly;
     if (!hasMinimumPhotos && hasMinimumPrompts) return ProfileCompletionStatus.promptsOnly;
-    if (hasMinimumPhotos && hasMinimumPrompts) return ProfileCompletionStatus.complete;
+    if (!hasMinimumGhostPrompts) return ProfileCompletionStatus.ghostPromptsNeeded;
+    if (hasMinimumPhotos && hasMinimumPrompts && hasMinimumGhostPrompts) return ProfileCompletionStatus.complete;
     return ProfileCompletionStatus.notStarted;
   }
 }
@@ -191,6 +205,7 @@ enum ProfileCompletionStatus {
   notStarted,
   photosOnly,
   promptsOnly,
+  ghostPromptsNeeded,
   complete
 }
 

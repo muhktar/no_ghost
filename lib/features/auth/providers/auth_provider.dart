@@ -182,8 +182,11 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     try {
       _ref.read(authLoadingProvider.notifier).state = true;
       _ref.read(authErrorProvider.notifier).state = null;
-      
+
       await _authService.signOut();
+
+      // Invalidate all profile-related providers to clear cached data
+      _ref.invalidate(authStateProvider);
     } catch (e) {
       _ref.read(authErrorProvider.notifier).state = e.toString();
       rethrow;

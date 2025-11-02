@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../shared/models/user_profile.dart';
 import '../data/user_profile_service.dart';
 import '../data/photo_upload_service.dart';
+import '../../auth/providers/auth_provider.dart';
 
 // Service provider
 final userProfileServiceProvider = Provider<UserProfileService>((ref) {
@@ -10,7 +11,17 @@ final userProfileServiceProvider = Provider<UserProfileService>((ref) {
 });
 
 // Current user profile provider (stream-based for real-time updates)
+// Watches auth state to invalidate when user changes
 final currentUserProfileProvider = StreamProvider<UserProfile?>((ref) {
+  // Watch auth state to ensure we invalidate when user changes
+  final authState = ref.watch(authStateProvider);
+
+  // Return empty stream if no user is logged in
+  final user = authState.value;
+  if (user == null) {
+    return Stream.value(null);
+  }
+
   final service = ref.watch(userProfileServiceProvider);
   return service.watchCurrentUserProfile();
 });
@@ -142,6 +153,22 @@ class UserProfileNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
     }
   }
 
+  // Update ghost prompts
+  Future<bool> updateGhostPrompts(List<ProfilePrompt> ghostPrompts) async {
+    final currentProfile = state.value;
+    if (currentProfile == null) return false;
+
+    try {
+      final success = await _service.updateUserGhostPrompts(currentProfile.userId, ghostPrompts);
+      if (success) {
+        await _loadCurrentProfile();
+      }
+      return success;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // Update basic info
   Future<bool> updateBasicInfo({
     String? name,
@@ -223,6 +250,15 @@ final userPromptsProvider = Provider<List<ProfilePrompt>>((ref) {
   final profileAsync = ref.watch(currentUserProfileProvider);
   return profileAsync.when(
     data: (profile) => profile?.prompts ?? [],
+    loading: () => [],
+    error: (_, __) => [],
+  );
+});
+
+final userGhostPromptsProvider = Provider<List<ProfilePrompt>>((ref) {
+  final profileAsync = ref.watch(currentUserProfileProvider);
+  return profileAsync.when(
+    data: (profile) => profile?.ghostPrompts ?? [],
     loading: () => [],
     error: (_, __) => [],
   );

@@ -752,6 +752,138 @@ Assumptions:
 
 ---
 
+## Deleting Test Users (Development/Testing)
+
+When testing the app or cleaning up test data, you need to delete users from **THREE** locations:
+
+### Complete User Deletion Checklist
+
+✅ **1. Firebase Authentication** (Login credentials)
+✅ **2. Cloud Firestore** (User profile data)
+✅ **3. Cloud Storage** (User photos)
+
+### Step 1: Delete from Firebase Authentication
+
+1. Go to [Firebase Console → Authentication → Users](https://console.firebase.google.com/project/no-ghost/authentication/users)
+2. Find the test user by email
+3. Click the **3-dots menu** (⋮) on the right
+4. Select **"Delete account"**
+5. Confirm deletion
+
+⚠️ **Why this matters**: Even if you delete from Firestore, the user can still log in if their auth account exists. This causes a "black screen" error when the app expects profile data that doesn't exist.
+
+### Step 2: Delete from Cloud Firestore
+
+1. Go to [Firebase Console → Firestore Database](https://console.firebase.google.com/project/no-ghost/firestore)
+2. Navigate to **users** collection
+3. Find the user document (document ID = user's UID)
+4. Click the document
+5. Click the **3-dots menu** (⋮) → **"Delete document"**
+6. Confirm deletion
+
+**Bulk Delete** (for multiple test users):
+```bash
+# Using Firebase CLI (requires installation)
+firebase firestore:delete users --all-collections --yes
+```
+
+### Step 3: Delete from Cloud Storage
+
+1. Go to [Firebase Console → Storage](https://console.firebase.google.com/project/no-ghost/storage)
+2. Navigate to **users/** folder
+3. Find the user's folder: **users/{userId}/**
+4. Click the **folder icon**
+5. Click **"Delete folder"**
+6. Confirm deletion
+
+**Delete All User Folders** (complete reset for testing):
+1. In Storage console
+2. Select the entire **users/** folder
+3. Click **"Delete folder"**
+4. Confirm deletion
+5. The folder will be recreated automatically when new users upload photos
+
+### Common Deletion Scenarios
+
+**Scenario 1: Testing Ghost Mode Feature**
+```
+Problem: Need to test fresh profile creation with ghost prompts
+Solution:
+1. Delete from Authentication (logout, then delete)
+2. Delete from Firestore (remove profile data)
+3. Delete from Storage (remove old photos)
+4. Create new account with same or different email
+```
+
+**Scenario 2: "User already exists" error**
+```
+Problem: Deleted from Firestore but user still exists in Authentication
+Solution:
+1. Go to Authentication → Users
+2. Find and delete the user account
+3. Now you can create new account with same email
+```
+
+**Scenario 3: Black screen after login**
+```
+Problem: User exists in Authentication but NOT in Firestore
+Solution:
+1. Sign out from the app
+2. Delete user from Authentication
+3. Create fresh account
+```
+
+**Scenario 4: Old photos showing after profile deletion**
+```
+Problem: Deleted Firestore data but photos still in Storage
+Solution:
+1. Go to Storage → users/{userId}/photos/
+2. Delete the entire photos folder
+3. Or delete the entire user folder
+```
+
+### Automation Script (Optional)
+
+For frequent testing, you can use Firebase CLI:
+
+```bash
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Login
+firebase login
+
+# Delete specific user's Firestore data
+firebase firestore:delete users/{USER_ID} --project no-ghost
+
+# Delete user's Storage folder (requires Firebase Admin SDK)
+# See: https://firebase.google.com/docs/storage/admin/delete-files
+```
+
+### Best Practices for Testing
+
+1. **Use test email pattern**: `test+1@example.com`, `test+2@example.com`
+   - Gmail ignores `+` suffix, all go to same inbox
+   - Easy to identify test accounts
+
+2. **Delete in order**:
+   - First: Sign out from app
+   - Second: Delete from Authentication
+   - Third: Delete from Firestore
+   - Fourth: Delete from Storage
+
+3. **Clear app data** (alternative to deletion):
+   - Android: Settings → Apps → No Ghost → Clear Data
+   - iOS: Delete and reinstall app
+   - This logs out user locally but doesn't delete Firebase data
+
+4. **Use different emails** for different test scenarios:
+   - `test-basic@example.com` - Test basic info only
+   - `test-photos@example.com` - Test photo upload
+   - `test-ghost@example.com` - Test ghost mode prompts
+
+---
+
 ## Testing & Verification
 
 ### Step 1: Test Firebase Connection

@@ -16,6 +16,7 @@ class ProfileSetupScreen extends HookConsumerWidget {
     final userProfileAsync = ref.watch(currentUserProfileProvider);
     final photoCount = ref.watch(userPhotoUrlsProvider).length;
     final promptCount = ref.watch(userPromptsProvider).length;
+    final ghostPromptCount = ref.watch(userGhostPromptsProvider).length;
     
     return Scaffold(
       appBar: AppBar(
@@ -321,6 +322,100 @@ class ProfileSetupScreen extends HookConsumerWidget {
               ),
             ),
 
+            const SizedBox(height: 20),
+
+            // Ghost Mode Prompts Section
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.visibility_off,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Ghost Mode Prompts ($ghostPromptCount/6)',
+                          style: GoogleFonts.lobster(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      if (ghostPromptCount >= 3)
+                        const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Create prompts for anonymous browsing mode',
+                    style: GoogleFonts.lobster(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  userProfileAsync.when(
+                    data: (profile) => ElevatedButton(
+                      onPressed: profile?.hasBasicInfo == true
+                          ? () async {
+                              await context.push('/add-ghost-prompts');
+                              // Ghost prompt count will update automatically via provider
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: profile?.hasBasicInfo == true
+                            ? null
+                            : Colors.grey[300],
+                      ),
+                      child: Text(
+                        profile?.hasBasicInfo == true
+                            ? 'Add Ghost Mode Prompts'
+                            : 'Complete Basic Info First',
+                        style: GoogleFonts.lobster(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    loading: () => ElevatedButton(
+                      onPressed: null,
+                      child: Text(
+                        'Loading...',
+                        style: GoogleFonts.lobster(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    error: (_, __) => ElevatedButton(
+                      onPressed: null,
+                      child: Text(
+                        'Error',
+                        style: GoogleFonts.lobster(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 40),
 
             // Preview Profile Button
@@ -356,16 +451,54 @@ class ProfileSetupScreen extends HookConsumerWidget {
             
             const SizedBox(height: 16),
             
-            // Continue Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => context.go('/discovery'),
-                child: Text(
-                  'Start Discovering',
-                  style: GoogleFonts.lobster(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+            // Continue Button (only enabled when profile is complete)
+            userProfileAsync.when(
+              data: (profile) {
+                final hasAllRequirements = (profile?.hasMinimumPhotos ?? false) &&
+                                          (profile?.hasMinimumPrompts ?? false) &&
+                                          (profile?.hasMinimumGhostPrompts ?? false) &&
+                                          (profile?.hasBasicInfo ?? false);
+
+                return SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: hasAllRequirements ? () => context.go('/discovery') : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: hasAllRequirements ? null : Colors.grey[300],
+                    ),
+                    child: Text(
+                      hasAllRequirements ? 'Start Discovering' : 'Complete All Sections to Continue',
+                      style: GoogleFonts.lobster(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              loading: () => SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: null,
+                  child: Text(
+                    'Loading...',
+                    style: GoogleFonts.lobster(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              error: (_, __) => SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: null,
+                  child: Text(
+                    'Error',
+                    style: GoogleFonts.lobster(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

@@ -269,7 +269,8 @@ class AuthService {
         ProfileCompletionStatus.complete => '/discovery', // Complete profile -> main app
         ProfileCompletionStatus.notStarted ||
         ProfileCompletionStatus.photosOnly ||
-        ProfileCompletionStatus.promptsOnly => '/profile-setup', // Incomplete profile -> setup
+        ProfileCompletionStatus.promptsOnly ||
+        ProfileCompletionStatus.ghostPromptsNeeded => '/profile-setup', // Incomplete profile -> setup
       };
 
       return route;

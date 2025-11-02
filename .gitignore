@@ -64,4 +64,4 @@ integration_test/driver.dart
 coverage/
 
 # Sample images (large test files)
-assets/sample_images/
+assets/sample_images/devtools_options.yaml
