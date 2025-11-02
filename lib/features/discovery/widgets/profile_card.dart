@@ -261,55 +261,57 @@ class ProfileCard extends HookConsumerWidget {
                 ),
               ),
 
-              // Occupation and Location in bottom white space
-              Positioned(
-                bottom: 695, // In the actual white space below photos
-                left: 55,
-                right: 30,
-                child: Row(
-                  children: [
-                    // Occupation on the left (hidden in ghost mode)
-                    if (!isGhostMode && profile.occupation != null) ...[
+              // Occupation (hidden in ghost mode)
+              if (!isGhostMode && profile.occupation != null)
+                Positioned(
+                  bottom: 695,
+                  left: 55,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Icon(
                         Icons.work_outline,
                         size: 18,
                         color: Colors.black87,
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          profile.occupation!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Text(
+                        profile.occupation!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      if (profile.location != null) const SizedBox(width: 50),
                     ],
-                    // Location on the right (always visible)
-                    if (profile.location != null) ...[
+                  ),
+                ),
+
+              // Location (always visible, fixed position where it would be with occupation)
+              if (profile.location != null)
+                Positioned(
+                  bottom: 695,
+                  left: 240, // Position where it naturally sits when occupation is visible
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Icon(
                         Icons.location_on_outlined,
                         size: 18,
                         color: Colors.black87,
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          profile.location!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Text(
+                        profile.location!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
             ],
           ),
         );

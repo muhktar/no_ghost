@@ -85,12 +85,12 @@ class DiscoveryCardView extends HookWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: isGhostMode ? Colors.lightBlue.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
+                  color: isGhostMode ? Colors.grey.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: isGhostMode
                       ? [
                           BoxShadow(
-                            color: Colors.lightBlue.withValues(alpha: 0.5),
+                            color: Colors.lightBlue.withValues(alpha: 0.1),
                             blurRadius: 15,
                             offset: const Offset(0, 0),
                             spreadRadius: 1,
@@ -246,7 +246,7 @@ class _DiscoveryCardView extends HookWidget {
             SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: isGhostMode
+              child: (isGhostMode
                   ? ImageFiltered(
                       imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                       child: Image.network(
@@ -273,19 +273,6 @@ class _DiscoveryCardView extends HookWidget {
                         },
                       ),
                     )
-                      .animate(
-                        onPlay: (controller) => controller.repeat(reverse: true),
-                      )
-                      .shimmer(
-                        duration: 2000.ms,
-                        color: Colors.lightBlue.withValues(alpha: 0.3),
-                      )
-                      .scale(
-                        begin: const Offset(1.0, 1.0),
-                        end: const Offset(1.02, 1.02),
-                        duration: 1500.ms,
-                        curve: Curves.easeInOut,
-                      )
                   : Image.network(
                       photoUrl,
                       fit: BoxFit.cover,
@@ -308,7 +295,18 @@ class _DiscoveryCardView extends HookWidget {
                           ),
                         );
                       },
-                    ),
+                    ))
+                  .animate(target: isGhostMode ? 1 : 0)
+                  .shimmer(
+                    duration: 300.ms,
+                    color: Colors.white.withValues(alpha: 0.3),
+                  )
+                  .scale(
+                    begin: const Offset(1.0, 1.0),
+                    end: const Offset(1.02, 1.02),
+                    duration: 300.ms,
+                    curve: Curves.easeInOut,
+                  ),
             ),
 
             // Gradient overlay at bottom

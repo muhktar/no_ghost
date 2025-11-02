@@ -32,34 +32,20 @@ class DiscoveryCarouselView extends ConsumerWidget {
             },
           )
             .animate()
-            .fadeIn(duration: 400.ms)
+            .fadeIn(duration: 500.ms)
             .scale(begin: const Offset(0.95, 0.95), duration: 400.ms)
             .animate(target: isGhostMode ? 1 : 0)
             .shimmer(
-              duration: 800.ms,
-              color: Colors.lightBlue.withValues(alpha: 0.3),
+              duration: 300.ms,
+              color: Colors.white.withValues(alpha: 0.3),
+            )
+            .scale(
+              begin: const Offset(1.0, 1.0),
+              end: const Offset(1.005, 1.005),
+              duration: 300.ms,
+              curve: Curves.easeInOut,
             ),
         ),
-
-        // Pulse overlay effect when ghost mode activates
-        if (isGhostMode)
-          Positioned.fill(
-            child: IgnorePointer(
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.lightBlue.withValues(alpha: 0.5),
-                    width: 3,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              )
-                .animate(onPlay: (controller) => controller.repeat())
-                .fadeIn(duration: 400.ms)
-                .then()
-                .fadeOut(duration: 800.ms),
-            ),
-          ),
 
         // Top Bar (overlaid on card)
         Positioned(

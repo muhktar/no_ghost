@@ -380,9 +380,8 @@ class LoginScreen extends HookConsumerWidget {
                   emailController.text,
                   passwordController.text,
                 );
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
+                // Don't manually pop dialog - let auth state listener handle navigation
+                // Dialog will auto-dismiss when screen navigates away
               } catch (e) {
                 // Error handling is done in the provider listener
               }
@@ -502,9 +501,8 @@ class LoginScreen extends HookConsumerWidget {
 
               try {
                 await authNotifier.verifyPhoneCode(codeController.text);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
+                // Don't manually pop dialog - let auth state listener handle navigation
+                // Dialog will auto-dismiss when screen navigates away
               } catch (e) {
                 // Error handling is done in the provider listener
               }
