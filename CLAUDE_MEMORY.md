@@ -534,6 +534,265 @@ users/
 
 ---
 
+### Session 8: Ghost Mode Profile Shuffling & Name/Prompt Blur
+**Date**: November 2, 2025
+**Objective**: Complete ghost mode feature with profile anonymization and shuffling
+
+**User Requirements**:
+1. Blur names and "About Me" sections in views 2 and 3 when ghost mode is enabled
+2. Shuffle profiles when ghost mode is enabled so user sees different profile (prevents identity guessing)
+
+**Implementation**:
+
+1. **Profile Shuffling System**:
+   - **New Provider**: `ghostModeShuffledIndicesProvider` in `discovery_providers.dart`
+     - Maintains mapping of original indices to shuffled indices
+     - Ensures each profile maps to a different profile (not itself)
+     - Generates on ghost mode activation
+   - **Shuffling Logic** in `discovery_screen.dart`:
+     - `_generateShuffledIndices()`: Creates random 1-to-1 mapping of profiles
+     - `_getShuffledIndex()`: Returns shuffled index for ghost mode, original for normal mode
+     - Listener on `isGhostModeActiveProvider` triggers shuffle generation
+   - When ghost mode toggles ON: User sees completely different shuffled profile
+   - When ghost mode toggles OFF: User sees original profile
+   - Files modified:
+     - `lib/features/discovery/providers/discovery_providers.dart` - Added shuffled indices provider
+     - `lib/features/discovery/presentation/discovery_screen.dart` - Added shuffling logic with dart:math import
+
+2. **Name Blur Implementation** (Views 2 & 3):
+   - **View 2** (Profile Preview - `discovery_profile_view.dart`):
+     - Wrapped name and age Row with `ClipRect` + `ImageFiltered`
+     - Blur applied: `sigmaX: 8, sigmaY: 8` when `isGhostMode` is true
+     - Blur disabled: `sigmaX: 0, sigmaY: 0` when ghost mode is off
+     - Lines modified: 372-403
+   - **View 3** (Card View - `discovery_card_view.dart`):
+     - Same blur technique applied to name in `_buildBasicInfoCard` method
+     - Lines modified: 670-699
+
+3. **Prompt Blur Implementation** (Views 2 & 3):
+   - **View 2** (Profile Preview):
+     - All prompt cards wrapped with `ClipRRect` + `ImageFiltered`
+     - Maintains rounded corners (12px border radius) while blurring
+     - Blur settings: `sigmaX: 8, sigmaY: 8` in ghost mode
+     - Lines modified: 507-558
+   - **View 3** (Card View):
+     - Entire `_buildPromptCard` widget wrapped with blur filter
+     - Maintains card border radius (20px) with `ClipRRect`
+     - Lines modified: 443-611
+
+**Technical Details**:
+
+```dart
+// Shuffle generation (discovery_screen.dart)
+void _generateShuffledIndices(WidgetRef ref, int profilesCount) {
+  final random = Random();
+  final shuffledIndices = <int, int>{};
+  final usedIndices = <int>{};
+
+  for (int i = 0; i < profilesCount; i++) {
+    int shuffledIndex;
+    do {
+      shuffledIndex = random.nextInt(profilesCount);
+    } while (shuffledIndex == i || usedIndices.contains(shuffledIndex));
+
+    shuffledIndices[i] = shuffledIndex;
+    usedIndices.add(shuffledIndex);
+  }
+
+  ref.read(ghostModeShuffledIndicesProvider.notifier).state = shuffledIndices;
+}
+
+// Name blur (both views)
+ClipRect(
+  child: ImageFiltered(
+    imageFilter: isGhostMode
+        ? ImageFilter.blur(sigmaX: 8, sigmaY: 8)
+        : ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+    child: Row(
+      children: [
+        Text(profile.name ?? 'No Name', ...),
+        Text('${profile.age}', ...),
+      ],
+    ),
+  ),
+)
+
+// Prompt blur (both views)
+ClipRRect(
+  borderRadius: BorderRadius.circular(12),
+  child: ImageFiltered(
+    imageFilter: isGhostMode
+        ? ImageFilter.blur(sigmaX: 8, sigmaY: 8)
+        : ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+    child: Container(...prompt card content...),
+  ),
+)
+```
+
+**Ghost Mode Feature Complete** ✅:
+- Photos: Blurred (all 3 views) ✅
+- Names & Ages: Blurred (views 2 & 3 only) ✅
+- Prompts: Blurred (views 2 & 3) ✅
+- Occupation: Hidden (all 3 views) ✅
+- Location: Visible (all 3 views) ✅
+- Ghost Prompts: Shown instead of regular prompts ✅
+- Profile Shuffling: Active in ghost mode ✅
+- Pulse Animations: Active on photos (all 3 views) ✅
+
+**Files Modified** (4 files):
+- `lib/features/discovery/providers/discovery_providers.dart` (added shuffled indices provider)
+- `lib/features/discovery/presentation/discovery_screen.dart` (added shuffling logic)
+- `lib/features/discovery/presentation/views/discovery_profile_view.dart` (name + prompt blur)
+- `lib/features/discovery/presentation/views/discovery_card_view.dart` (name + prompt blur)
+
+**Testing Notes**:
+- Profile shuffling ensures anonymity - users cannot identify ghost profiles
+- Blur strength (sigma: 8) makes text unreadable while maintaining visual structure
+- Shuffle mapping preserved during session, regenerated on ghost mode re-activation
+
+---
+
+### Session 9: Ghost Mode Implementation for Profile Preview Views
+**Date**: November 4, 2025
+**Objective**: Complete ghost mode functionality for all 3 profile preview views to match discovery screen behavior
+
+**User Requirements**:
+1. Add ghost mode button to profile preview views (views 1 and 3 - view 2 already had it)
+2. Position button between back arrow and "Profile Preview" title
+3. Enable ghost mode preview functionality:
+   - Hide name and show "Age : X" format
+   - Hide bio completely
+   - Replace occupation with gender
+   - Blur photos
+   - Show ghost prompts instead of regular prompts
+
+**Implementation**:
+
+1. **Profile Preview Carousel View (View 1)** - `profile_preview_carousel_view.dart`:
+   - Added `dart:ui` import for ImageFilter blur
+   - Added `discovery_providers` import for ghost mode state
+   - Converted to use ghost mode state: `final isGhostMode = ref.watch(isGhostModeActiveProvider)`
+   - **Photo blur**: Wrapped images with `ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20))`
+   - **Gender/Occupation toggle**:
+     - Ghost mode: Shows gender with `Icons.person_outline`
+     - Normal mode: Shows occupation with `Icons.work_outline`
+   - **Name/Age button**: Shows "Age : X" in ghost mode, "Name, Age" in normal mode
+   - **Ghost button**: Added to bottom row with full functionality
+     - Blue glow effect when active (`Colors.lightBlue.withValues(alpha: 0.5)`)
+     - Icon changes: `visibility_off` → `visibility`
+     - Color changes: black → light blue
+   - **Prompts**: Uses `promptsToUse = isGhostMode ? profile.ghostPrompts : profile.prompts`
+   - **Dynamic positioning**: Updated `_calculateTextHeight()` and `_getPillBottomPosition()` to accept `isGhostMode` parameter
+
+2. **Profile Preview Card View (View 3)** - `profile_preview_card_view.dart`:
+   - Converted from `StatelessWidget` to `HookConsumerWidget` for Riverpod state access
+   - Added `dart:ui` and `hooks_riverpod` imports
+   - Added ghost mode button to AppBar title:
+     ```dart
+     title: Row(
+       mainAxisSize: MainAxisSize.min,
+       children: [
+         // Ghost Mode Toggle Button (36x36)
+         Container(...ghost button...),
+         // Title
+         Text('Profile Preview', ...),
+       ],
+     )
+     ```
+   - **Photo blur**: Applied `ImageFiltered` with blur to all photo cards
+   - **Basic Info Card** (`_buildBasicInfoCard`):
+     - Name hidden in ghost mode, replaced with "Age : " prefix
+     - Bio hidden completely in ghost mode
+     - Occupation replaced with gender (person icon) in ghost mode
+   - **Prompts**: Uses ghost prompts when ghost mode is active
+   - Updated method signatures to accept `isGhostMode` parameter
+
+3. **Profile Preview Full View (View 2)** - Already completed in previous session:
+   - Ghost mode button in AppBar title
+   - All ghost mode display logic implemented
+   - Photo blur, name replacement, bio hiding, gender display working
+
+**Technical Details**:
+
+```dart
+// Photo blur (views 1 & 3)
+child: isGhostMode
+    ? ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Image.network(photoUrl, ...),
+      )
+    : Image.network(photoUrl, ...),
+
+// Name replacement (all views)
+Text(
+  isGhostMode
+      ? 'Age : ${profile.age}'
+      : '${profile.name}, ${profile.age}',
+  style: ...,
+)
+
+// Gender/Occupation toggle (all views)
+if (isGhostMode && profile.gender != null)
+  Row(
+    children: [
+      Icon(Icons.person_outline, ...),
+      Text(profile.gender!, ...),
+    ],
+  ),
+if (!isGhostMode && profile.occupation != null)
+  Row(
+    children: [
+      Icon(Icons.work_outline, ...),
+      Text(profile.occupation!, ...),
+    ],
+  ),
+
+// Bio hidden in ghost mode (views 2 & 3)
+if (!isGhostMode && profile.bio != null && profile.bio!.isNotEmpty)
+  Container(...bio content...),
+
+// Ghost prompts usage (all views)
+final promptsToUse = isGhostMode ? profile.ghostPrompts : profile.prompts;
+```
+
+**Ghost Mode Feature - Profile Preview Complete** ✅:
+- **View 1 (Carousel)**: Full ghost mode support ✅
+- **View 2 (Full View)**: Already completed ✅
+- **View 3 (Card View)**: Full ghost mode support ✅
+- Photos: Blurred in all 3 views ✅
+- Name: Replaced with "Age : X" format ✅
+- Bio: Hidden in ghost mode ✅
+- Occupation: Replaced with gender ✅
+- Location: Always visible ✅
+- Prompts: Ghost prompts shown ✅
+- Button: Functional with visual feedback ✅
+
+**Consistency Achieved**:
+- Profile preview views now match discovery screen ghost mode behavior
+- Users can preview how their profile looks in ghost mode across all view styles
+- Consistent UX between discovery and profile preview sections
+
+**Files Modified** (2 files):
+- `lib/features/profile/presentation/views/profile_preview_carousel_view.dart` (86 lines changed)
+- `lib/features/profile/presentation/views/profile_preview_card_view.dart` (112 lines changed)
+
+**Testing Status**:
+- ✅ Flutter analyze: No issues found
+- ✅ All 3 profile preview views have ghost mode functionality
+- ✅ Ghost mode button positioned correctly in all views
+- ✅ Photo blur working in all views
+- ✅ Name/bio/occupation display logic correct
+- ✅ Ghost prompts display working
+- ✅ Visual feedback (blue glow) working
+
+**Key Achievements**:
+- Profile preview feature parity with discovery screen
+- Consistent ghost mode experience across entire app
+- Users can accurately preview their ghost mode profile
+- Clean, maintainable code structure maintained
+
+---
+
 ## Previous Sessions (October 31, 2025)
 
 ### Session 1: Documentation and Asset Recovery

@@ -368,19 +368,29 @@ class _DiscoveryProfilePreview extends HookWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Name and basic info
+                // Name (in normal mode) or "Age: X" (in ghost mode)
                 Row(
                   children: [
-                    Text(
-                      profile.name ?? 'No Name',
-                      style: GoogleFonts.lobster(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    if (!isGhostMode)
+                      Text(
+                        profile.name ?? 'No Name',
+                        style: GoogleFonts.lobster(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
-                    ),
                     if (profile.age != null) ...[
-                      const SizedBox(width: 8),
+                      if (!isGhostMode) const SizedBox(width: 8),
+                      if (isGhostMode)
+                        Text(
+                          'Age : ',
+                          style: GoogleFonts.lobster(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
                       Text(
                         '${profile.age}',
                         style: GoogleFonts.lobster(
@@ -397,14 +407,33 @@ class _DiscoveryProfilePreview extends HookWidget {
 
                 const SizedBox(height: 8),
 
-                // Location and occupation (hide occupation in ghost mode)
-                if (profile.location != null || (!isGhostMode && profile.occupation != null))
+                // Location and gender/occupation (show gender in ghost mode, occupation in normal mode)
+                if (profile.location != null || (isGhostMode && profile.gender != null) || (!isGhostMode && profile.occupation != null))
                   Row(
                     children: [
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Show gender in ghost mode, occupation in normal mode
+                            if (isGhostMode && profile.gender != null)
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.person_outline,
+                                    size: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    profile.gender!,
+                                    style: GoogleFonts.lobster(
+                                      fontSize: 16,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             if (!isGhostMode && profile.occupation != null)
                               Row(
                                 children: [
@@ -424,7 +453,8 @@ class _DiscoveryProfilePreview extends HookWidget {
                                 ],
                               ),
                             if (profile.location != null) ...[
-                              if (!isGhostMode && profile.occupation != null) const SizedBox(height: 4),
+                              if ((isGhostMode && profile.gender != null) || (!isGhostMode && profile.occupation != null))
+                                const SizedBox(height: 4),
                               Row(
                                 children: [
                                   Icon(
@@ -453,8 +483,8 @@ class _DiscoveryProfilePreview extends HookWidget {
 
                 const SizedBox(height: 16),
 
-                // Bio section
-                if (profile.bio != null && profile.bio!.isNotEmpty)
+                // Bio section (hidden in ghost mode)
+                if (!isGhostMode && profile.bio != null && profile.bio!.isNotEmpty)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -477,7 +507,8 @@ class _DiscoveryProfilePreview extends HookWidget {
                     .fadeIn(delay: 400.ms, duration: 600.ms)
                     .slideY(begin: 0.3, end: 0),
 
-                const SizedBox(height: 24),
+                if (!isGhostMode) const SizedBox(height: 24),
+                if (isGhostMode) const SizedBox(height: 8),
 
                 // Prompts section
                 if (hasPrompts) ...[

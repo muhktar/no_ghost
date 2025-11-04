@@ -261,8 +261,8 @@ class ProfileCard extends HookConsumerWidget {
                 ),
               ),
 
-              // Occupation (hidden in ghost mode)
-              if (!isGhostMode && profile.occupation != null)
+              // Gender (in ghost mode) or Occupation (in normal mode)
+              if ((isGhostMode && profile.gender != null) || (!isGhostMode && profile.occupation != null))
                 Positioned(
                   bottom: 695,
                   left: 55,
@@ -270,13 +270,13 @@ class ProfileCard extends HookConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons.work_outline,
+                        isGhostMode ? Icons.person_outline : Icons.work_outline,
                         size: 18,
                         color: Colors.black87,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        profile.occupation!,
+                        isGhostMode ? profile.gender! : profile.occupation!,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.black87,

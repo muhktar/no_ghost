@@ -1,7 +1,9 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../shared/models/user_profile.dart';
 import '../../profile/providers/user_profile_provider.dart';
+import '../providers/discovery_providers.dart';
 import 'views/discovery_carousel_view.dart';
 import 'views/discovery_profile_view.dart';
 import 'views/discovery_card_view.dart';
@@ -32,6 +34,19 @@ class DiscoveryScreen extends ConsumerWidget {
     final profilesAsync = ref.watch(discoveryProfilesProvider);
     final currentIndex = ref.watch(currentProfileIndexProvider);
     final viewMode = ref.watch(discoveryViewModeProvider);
+    final isGhostMode = ref.watch(isGhostModeActiveProvider);
+
+    // Listen for ghost mode changes to generate shuffled indices
+    ref.listen<bool>(isGhostModeActiveProvider, (previous, next) {
+      if (next && previous != next) {
+        // Ghost mode was just enabled, generate shuffled mapping
+        profilesAsync.whenData((profiles) {
+          if (profiles.isNotEmpty) {
+            _generateShuffledIndices(ref, profiles.length);
+          }
+        });
+      }
+    });
 
     return profilesAsync.when(
       loading: () => Scaffold(
@@ -166,7 +181,11 @@ class DiscoveryScreen extends ConsumerWidget {
           );
         }
 
-        final currentProfile = profiles[currentIndex];
+        // Get the actual profile to display based on ghost mode
+        final displayIndex = isGhostMode
+            ? _getShuffledIndex(ref, currentIndex, profiles.length)
+            : currentIndex;
+        final currentProfile = profiles[displayIndex];
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -176,6 +195,38 @@ class DiscoveryScreen extends ConsumerWidget {
         );
       },
     );
+  }
+
+  // Generate shuffled indices that map each index to a different random index
+  void _generateShuffledIndices(WidgetRef ref, int profilesCount) {
+    final random = Random();
+    final shuffledIndices = <int, int>{};
+    final usedIndices = <int>{};
+
+    for (int i = 0; i < profilesCount; i++) {
+      int shuffledIndex;
+      do {
+        shuffledIndex = random.nextInt(profilesCount);
+      } while (shuffledIndex == i || usedIndices.contains(shuffledIndex));
+
+      shuffledIndices[i] = shuffledIndex;
+      usedIndices.add(shuffledIndex);
+    }
+
+    ref.read(ghostModeShuffledIndicesProvider.notifier).state = shuffledIndices;
+  }
+
+  // Get the shuffled index for ghost mode, generating if needed
+  int _getShuffledIndex(WidgetRef ref, int originalIndex, int profilesCount) {
+    final shuffledMap = ref.read(ghostModeShuffledIndicesProvider);
+
+    // If shuffled map is empty or doesn't contain the index, generate it
+    if (shuffledMap.isEmpty || !shuffledMap.containsKey(originalIndex)) {
+      _generateShuffledIndices(ref, profilesCount);
+      return ref.read(ghostModeShuffledIndicesProvider)[originalIndex] ?? originalIndex;
+    }
+
+    return shuffledMap[originalIndex] ?? originalIndex;
   }
 
   void _handlePreviousProfile(WidgetRef ref) {

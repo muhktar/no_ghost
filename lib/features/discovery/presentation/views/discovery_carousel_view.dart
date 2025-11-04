@@ -105,6 +105,7 @@ class DiscoveryCarouselView extends ConsumerWidget {
                 ),
 
                 // Name and age button (rectangular with rounded edges) - moved to right
+                // Shows "Age : X" in ghost mode, "Name, Age" in normal mode
                 GestureDetector(
                   onTap: () => _handleSkip(ref),
                   child: Container(
@@ -114,7 +115,9 @@ class DiscoveryCarouselView extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '${profile.name}, ${profile.age}',
+                      isGhostMode
+                          ? 'Age : ${profile.age}'
+                          : '${profile.name}, ${profile.age}',
                       style: const TextStyle(
                         color: Colors.black87,
                         fontSize: 16,

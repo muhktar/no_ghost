@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../../../../shared/models/user_profile.dart';
 import '../../../discovery/presentation/discovery_screen.dart';
+import '../../../discovery/providers/discovery_providers.dart';
 
 class ProfilePreviewFullView extends HookConsumerWidget {
   final UserProfile profile;
@@ -21,6 +23,8 @@ class ProfilePreviewFullView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isGhostMode = ref.watch(isGhostModeActiveProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -30,13 +34,50 @@ class ProfilePreviewFullView extends HookConsumerWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => context.pop(),
         ),
-        title: Text(
-          'Profile Preview',
-          style: GoogleFonts.lobster(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Ghost Mode Toggle Button
+            Container(
+              width: 36,
+              height: 36,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                color: isGhostMode ? Colors.grey.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: isGhostMode
+                    ? [
+                        BoxShadow(
+                          color: Colors.lightBlue.withValues(alpha: 0.1),
+                          blurRadius: 15,
+                          offset: const Offset(0, 0),
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: IconButton(
+                onPressed: () {
+                  ref.read(isGhostModeActiveProvider.notifier).state = !isGhostMode;
+                },
+                padding: EdgeInsets.zero,
+                icon: Icon(
+                  isGhostMode ? Icons.visibility : Icons.visibility_off,
+                  size: 20,
+                  color: isGhostMode ? Colors.lightBlue : Colors.black87,
+                ),
+              ),
+            ),
+            // Title
+            Text(
+              'Profile Preview',
+              style: GoogleFonts.lobster(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+          ],
         ),
         centerTitle: true,
         actions: [
@@ -46,7 +87,7 @@ class ProfilePreviewFullView extends HookConsumerWidget {
           ),
         ],
       ),
-      body: _buildProfilePreview(context, profile, currentPhotoIndex),
+      body: _buildProfilePreview(context, profile, currentPhotoIndex, isGhostMode),
     );
   }
 
@@ -94,10 +135,12 @@ class ProfilePreviewFullView extends HookConsumerWidget {
     BuildContext context,
     UserProfile profile,
     ValueNotifier<int> currentPhotoIndex,
+    bool isGhostMode,
   ) {
     final theme = Theme.of(context);
     final hasPhotos = profile.photoUrls.isNotEmpty;
-    final hasPrompts = profile.prompts.isNotEmpty;
+    final promptsToUse = isGhostMode ? profile.ghostPrompts : profile.prompts;
+    final hasPrompts = promptsToUse.isNotEmpty;
 
     return SingleChildScrollView(
       child: Column(
@@ -113,31 +156,60 @@ class ProfilePreviewFullView extends HookConsumerWidget {
                         itemBuilder: (context, index, realIndex) {
                           return ClipRRect(
                             borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              profile.photoUrls[index],
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  color: Colors.grey[200],
-                                  child: const Center(
-                                    child: CircularProgressIndicator(),
+                            child: isGhostMode
+                                ? ImageFiltered(
+                                    imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                    child: Image.network(
+                                      profile.photoUrls[index],
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Container(
+                                          color: Colors.grey[200],
+                                          child: const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          color: Colors.grey[200],
+                                          child: const Icon(
+                                            Icons.broken_image,
+                                            size: 50,
+                                            color: Colors.grey,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  )
+                                : Image.network(
+                                    profile.photoUrls[index],
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        color: Colors.grey[200],
+                                        child: const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey[200],
+                                        child: const Icon(
+                                          Icons.broken_image,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.grey[200],
-                                  child: const Icon(
-                                    Icons.broken_image,
-                                    size: 50,
-                                    color: Colors.grey,
-                                  ),
-                                );
-                              },
-                            ),
                           );
                         },
                         options: CarouselOptions(
@@ -252,19 +324,29 @@ class ProfilePreviewFullView extends HookConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Name and basic info
+                // Name (in normal mode) or "Age : X" (in ghost mode)
                 Row(
                   children: [
-                    Text(
-                      profile.name ?? 'No Name',
-                      style: GoogleFonts.lobster(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    if (!isGhostMode)
+                      Text(
+                        profile.name ?? 'No Name',
+                        style: GoogleFonts.lobster(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
-                    ),
                     if (profile.age != null) ...[
-                      const SizedBox(width: 8),
+                      if (!isGhostMode) const SizedBox(width: 8),
+                      if (isGhostMode)
+                        Text(
+                          'Age : ',
+                          style: GoogleFonts.lobster(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
                       Text(
                         '${profile.age}',
                         style: GoogleFonts.lobster(
@@ -281,12 +363,31 @@ class ProfilePreviewFullView extends HookConsumerWidget {
 
                 const SizedBox(height: 8),
 
-                // Location and occupation
-                if (profile.location != null || profile.occupation != null)
+                // Location and gender/occupation (show gender in ghost mode, occupation in normal mode)
+                if (profile.location != null || (isGhostMode && profile.gender != null) || (!isGhostMode && profile.occupation != null))
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (profile.occupation != null)
+                      // Show gender in ghost mode, occupation in normal mode
+                      if (isGhostMode && profile.gender != null)
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              profile.gender!,
+                              style: GoogleFonts.lobster(
+                                fontSize: 16,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (!isGhostMode && profile.occupation != null)
                         Row(
                           children: [
                             Icon(
@@ -305,7 +406,8 @@ class ProfilePreviewFullView extends HookConsumerWidget {
                           ],
                         ),
                       if (profile.location != null) ...[
-                        const SizedBox(height: 4),
+                        if ((isGhostMode && profile.gender != null) || (!isGhostMode && profile.occupation != null))
+                          const SizedBox(height: 4),
                         Row(
                           children: [
                             Icon(
@@ -331,8 +433,8 @@ class ProfilePreviewFullView extends HookConsumerWidget {
 
                 const SizedBox(height: 16),
 
-                // Bio section
-                if (profile.bio != null && profile.bio!.isNotEmpty)
+                // Bio section (hidden in ghost mode)
+                if (!isGhostMode && profile.bio != null && profile.bio!.isNotEmpty)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -355,7 +457,8 @@ class ProfilePreviewFullView extends HookConsumerWidget {
                     .fadeIn(delay: 400.ms, duration: 600.ms)
                     .slideY(begin: 0.3, end: 0),
 
-                const SizedBox(height: 24),
+                if (!isGhostMode) const SizedBox(height: 24),
+                if (isGhostMode) const SizedBox(height: 8),
 
                 // Prompts section
                 if (hasPrompts) ...[
@@ -372,7 +475,7 @@ class ProfilePreviewFullView extends HookConsumerWidget {
 
                   const SizedBox(height: 16),
 
-                  ...profile.prompts.asMap().entries.map((entry) {
+                  ...promptsToUse.asMap().entries.map((entry) {
                     final index = entry.key;
                     final prompt = entry.value;
                     return Container(

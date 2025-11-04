@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../shared/models/user_profile.dart';
 import '../../../discovery/presentation/discovery_screen.dart';
+import '../../../discovery/providers/discovery_providers.dart';
 
 class ProfilePreviewCarouselView extends HookConsumerWidget {
   final UserProfile profile;
@@ -19,10 +21,11 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
   });
 
   // Calculate text height for dynamic photo counter positioning
-  double _calculateTextHeight(int photoIndex) {
-    if (photoIndex >= profile.prompts.length) return 0;
+  double _calculateTextHeight(int photoIndex, bool isGhostMode) {
+    final promptsToUse = isGhostMode ? profile.ghostPrompts : profile.prompts;
+    if (photoIndex >= promptsToUse.length) return 0;
 
-    final prompt = profile.prompts[photoIndex];
+    final prompt = promptsToUse[photoIndex];
     final text = '${prompt.question}\n${prompt.answer}';
 
     // More accurate text height calculation
@@ -33,8 +36,8 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
   }
 
   // Calculate dynamic bottom position for photo counter pill
-  double _getPillBottomPosition(int photoIndex) {
-    final estimatedTextHeight = _calculateTextHeight(photoIndex);
+  double _getPillBottomPosition(int photoIndex, bool isGhostMode) {
+    final estimatedTextHeight = _calculateTextHeight(photoIndex, isGhostMode);
     return estimatedTextHeight > 80
         ? (280.0 + estimatedTextHeight - 85)
         : 280.0;
@@ -43,21 +46,42 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pageController = usePageController(viewportFraction: 0.85);
+    final isGhostMode = ref.watch(isGhostModeActiveProvider);
+    final promptsToUse = isGhostMode ? profile.ghostPrompts : profile.prompts;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Occupation and Location above photos
-          if (profile.occupation != null || profile.location != null)
+          // Gender (in ghost mode) or Occupation (in normal mode) and Location above photos
+          if ((isGhostMode && profile.gender != null) || (!isGhostMode && profile.occupation != null) || profile.location != null)
             Positioned(
               top: 100,
               left: 55,
               right: 30,
               child: Row(
                 children: [
-                  // Occupation on the left
-                  if (profile.occupation != null) ...[
+                  // Gender (ghost mode) or Occupation (normal mode) on the left
+                  if (isGhostMode && profile.gender != null) ...[
+                    const Icon(
+                      Icons.person_outline,
+                      size: 18,
+                      color: Colors.black87,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        profile.gender!,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if (profile.location != null) const SizedBox(width: 50),
+                  ],
+                  if (!isGhostMode && profile.occupation != null) ...[
                     const Icon(
                       Icons.work_outline,
                       size: 18,
@@ -137,29 +161,56 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(20),
-                          child: Image.network(
-                            profile.photoUrls[index],
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                color: Colors.grey[200],
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
+                          child: isGhostMode
+                              ? ImageFiltered(
+                                  imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                  child: Image.network(
+                                    profile.photoUrls[index],
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        color: Colors.grey[200],
+                                        child: const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey[200],
+                                        child: const Icon(
+                                          Icons.broken_image,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                )
+                              : Image.network(
+                                  profile.photoUrls[index],
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Container(
+                                      color: Colors.grey[200],
+                                      child: const Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Colors.grey[200],
+                                      child: const Icon(
+                                        Icons.broken_image,
+                                        size: 50,
+                                        color: Colors.grey,
+                                      ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[200],
-                                child: const Icon(
-                                  Icons.broken_image,
-                                  size: 50,
-                                  color: Colors.grey,
-                                ),
-                              );
-                            },
-                          ),
                         ),
                       ),
                     );
@@ -174,7 +225,7 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
           // Photo Counter Badge - dynamically positioned to avoid overlap
           if (profile.photoUrls.length > 1)
             Positioned(
-              bottom: _getPillBottomPosition(currentPhotoIndex.value),
+              bottom: _getPillBottomPosition(currentPhotoIndex.value, isGhostMode),
               left: 24,
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -213,13 +264,13 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Show prompt if available for current photo
-                  if (currentPhotoIndex.value < profile.prompts.length)
+                  if (currentPhotoIndex.value < promptsToUse.length)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Bold prompt question
                         Text(
-                          profile.prompts[currentPhotoIndex.value].question,
+                          promptsToUse[currentPhotoIndex.value].question,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 28,
@@ -231,7 +282,7 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
                         const SizedBox(height: 8),
                         // Normal response text
                         Text(
-                          profile.prompts[currentPhotoIndex.value].answer,
+                          promptsToUse[currentPhotoIndex.value].answer,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -306,7 +357,7 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
                       ),
                     ),
 
-                    // Name and age button
+                    // Name and age button - shows "Age : X" in ghost mode
                     GestureDetector(
                       onTap: () {
                         // TODO: Implement skip functionality
@@ -318,7 +369,9 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '${profile.name}, ${profile.age}',
+                          isGhostMode
+                              ? 'Age : ${profile.age}'
+                              : '${profile.name}, ${profile.age}',
                           style: const TextStyle(
                             color: Colors.black87,
                             fontSize: 16,
@@ -420,15 +473,22 @@ class ProfilePreviewCarouselView extends HookConsumerWidget {
                                 blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),
+                              if (isGhostMode)
+                                BoxShadow(
+                                  color: Colors.lightBlue.withValues(alpha: 0.5),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 0),
+                                  spreadRadius: 2,
+                                ),
                             ],
                           ),
                           child: IconButton(
                             onPressed: () {
-                              // TODO: Add ghost functionality
+                              ref.read(isGhostModeActiveProvider.notifier).state = !isGhostMode;
                             },
-                            icon: const Icon(
-                              Icons.visibility_off,
-                              color: Colors.black87,
+                            icon: Icon(
+                              isGhostMode ? Icons.visibility : Icons.visibility_off,
+                              color: isGhostMode ? Colors.lightBlue : Colors.black87,
                               size: 22,
                             ),
                             padding: EdgeInsets.zero,

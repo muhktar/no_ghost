@@ -1,10 +1,13 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/models/user_profile.dart';
 import '../../../discovery/presentation/discovery_screen.dart';
+import '../../../discovery/providers/discovery_providers.dart';
 
-class ProfilePreviewCardView extends StatelessWidget {
+class ProfilePreviewCardView extends HookConsumerWidget {
   final UserProfile profile;
   final ValueNotifier<DiscoveryViewMode> selectedViewMode;
 
@@ -15,7 +18,9 @@ class ProfilePreviewCardView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isGhostMode = ref.watch(isGhostModeActiveProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -25,13 +30,52 @@ class ProfilePreviewCardView extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => context.pop(),
         ),
-        title: Text(
-          'Profile Preview',
-          style: GoogleFonts.lobster(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Ghost Mode Toggle Button
+            Container(
+              width: 36,
+              height: 36,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                color: isGhostMode
+                    ? Colors.grey.withValues(alpha: 0.1)
+                    : Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: isGhostMode
+                    ? [
+                        BoxShadow(
+                          color: Colors.lightBlue.withValues(alpha: 0.1),
+                          blurRadius: 15,
+                          offset: const Offset(0, 0),
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: IconButton(
+                onPressed: () {
+                  ref.read(isGhostModeActiveProvider.notifier).state = !isGhostMode;
+                },
+                padding: EdgeInsets.zero,
+                icon: Icon(
+                  isGhostMode ? Icons.visibility : Icons.visibility_off,
+                  size: 20,
+                  color: isGhostMode ? Colors.lightBlue : Colors.black87,
+                ),
+              ),
+            ),
+            // Title
+            Text(
+              'Profile Preview',
+              style: GoogleFonts.lobster(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+          ],
         ),
         centerTitle: true,
         actions: [
@@ -47,7 +91,7 @@ class ProfilePreviewCardView extends StatelessWidget {
           Positioned.fill(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 120), // Leave space for buttons
-              child: _buildDiscoveryCardContentOnly(context, profile),
+              child: _buildDiscoveryCardContentOnly(context, profile, isGhostMode),
             ),
           ),
           // Bottom action buttons - 2 buttons with icons
@@ -197,31 +241,32 @@ class ProfilePreviewCardView extends StatelessWidget {
   }
 
   // Custom method to show only the card content without the top bar
-  Widget _buildDiscoveryCardContentOnly(BuildContext context, UserProfile profile) {
+  Widget _buildDiscoveryCardContentOnly(BuildContext context, UserProfile profile, bool isGhostMode) {
     // Create alternating list of photos and prompts
     final List<Widget> contentItems = [];
+    final promptsToUse = isGhostMode ? profile.ghostPrompts : profile.prompts;
 
-    final maxItems = profile.photoUrls.length > profile.prompts.length
+    final maxItems = profile.photoUrls.length > promptsToUse.length
         ? profile.photoUrls.length
-        : profile.prompts.length;
+        : promptsToUse.length;
 
     for (int i = 0; i < maxItems * 2; i++) {
       if (i % 2 == 0) {
         // Even index: add photo if available
         final photoIndex = i ~/ 2;
         if (photoIndex < profile.photoUrls.length) {
-          contentItems.add(_buildPhotoCardWithoutActions(profile.photoUrls[photoIndex], photoIndex, context));
+          contentItems.add(_buildPhotoCardWithoutActions(profile.photoUrls[photoIndex], photoIndex, context, isGhostMode));
 
           // Add basic info card after the first photo
           if (photoIndex == 0) {
-            contentItems.add(_buildBasicInfoCard(context, profile));
+            contentItems.add(_buildBasicInfoCard(context, profile, isGhostMode));
           }
         }
       } else {
         // Odd index: add prompt if available
         final promptIndex = i ~/ 2;
-        if (promptIndex < profile.prompts.length) {
-          contentItems.add(_buildPromptCard(profile.prompts[promptIndex], promptIndex, context));
+        if (promptIndex < promptsToUse.length) {
+          contentItems.add(_buildPromptCard(promptsToUse[promptIndex], promptIndex, context));
         }
       }
     }
@@ -244,7 +289,7 @@ class ProfilePreviewCardView extends StatelessWidget {
     );
   }
 
-  Widget _buildPhotoCardWithoutActions(String photoUrl, int photoIndex, BuildContext context) {
+  Widget _buildPhotoCardWithoutActions(String photoUrl, int photoIndex, BuildContext context, bool isGhostMode) {
     return Container(
       height: 670,
       decoration: BoxDecoration(
@@ -265,29 +310,56 @@ class ProfilePreviewCardView extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: Image.network(
-                photoUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: CircularProgressIndicator(),
+              child: isGhostMode
+                  ? ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: Image.network(
+                        photoUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Icon(
+                              Icons.broken_image,
+                              size: 50,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Image.network(
+                      photoUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[200],
+                          child: const Icon(
+                            Icons.broken_image,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Icon(
-                      Icons.broken_image,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-                  );
-                },
-              ),
             ),
 
             // Photo indicator
@@ -316,7 +388,7 @@ class ProfilePreviewCardView extends StatelessWidget {
     );
   }
 
-  Widget _buildBasicInfoCard(BuildContext context, UserProfile profile) {
+  Widget _buildBasicInfoCard(BuildContext context, UserProfile profile, bool isGhostMode) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(20),
@@ -340,16 +412,26 @@ class ProfilePreviewCardView extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(
-                profile.name ?? 'Unknown',
-                style: GoogleFonts.lobster(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              if (!isGhostMode)
+                Text(
+                  profile.name ?? 'Unknown',
+                  style: GoogleFonts.lobster(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-              ),
               if (profile.age != null) ...[
-                const SizedBox(width: 8),
+                if (!isGhostMode) const SizedBox(width: 8),
+                if (isGhostMode)
+                  Text(
+                    'Age : ',
+                    style: GoogleFonts.lobster(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
                 Text(
                   '${profile.age}',
                   style: GoogleFonts.lobster(
@@ -361,9 +443,27 @@ class ProfilePreviewCardView extends StatelessWidget {
               ],
             ],
           ),
-          if (profile.occupation != null || profile.location != null) ...[
+          if ((isGhostMode && profile.gender != null) || (!isGhostMode && profile.occupation != null) || profile.location != null) ...[
             const SizedBox(height: 12),
-            if (profile.occupation != null)
+            if (isGhostMode && profile.gender != null)
+              Row(
+                children: [
+                  Icon(
+                    Icons.person_outline,
+                    size: 16,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    profile.gender!,
+                    style: GoogleFonts.lobster(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
+            if (!isGhostMode && profile.occupation != null)
               Row(
                 children: [
                   Icon(
@@ -402,7 +502,7 @@ class ProfilePreviewCardView extends StatelessWidget {
               ),
             ],
           ],
-          if (profile.bio != null && profile.bio!.isNotEmpty) ...[
+          if (!isGhostMode && profile.bio != null && profile.bio!.isNotEmpty) ...[
             const SizedBox(height: 16),
             Text(
               profile.bio!,
